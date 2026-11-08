@@ -44,6 +44,8 @@ _LOGGER = logging.getLogger(__name__)
 
 URL_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.URL))
 TOKEN_SELECTOR = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+# hassfest forbids URLs inside translation strings, so the example is a placeholder.
+URL_PLACEHOLDERS = {"example_url": "https://budget.app.example.com"}
 
 
 class FlowError(Exception):
@@ -121,6 +123,7 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
                 ),
                 {CONF_URL: (user_input or {}).get(CONF_URL)},
             ),
+            description_placeholders=URL_PLACEHOLDERS,
             errors=errors,
         )
 
@@ -186,6 +189,7 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
                 ),
                 {CONF_URL: (user_input or entry.data).get(CONF_URL)},
             ),
+            description_placeholders=URL_PLACEHOLDERS,
             errors=errors,
         )
 

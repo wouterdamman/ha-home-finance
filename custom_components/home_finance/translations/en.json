@@ -9,7 +9,7 @@
           "api_token": "Integration token"
         },
         "data_description": {
-          "url": "For example https://budget.app.example.com. A pasted /api/integrations/v1 suffix is removed.",
+          "url": "For example {example_url}. A pasted /api/integrations/v1 suffix is removed.",
           "api_token": "The hf_... token, shown once when it was created."
         }
       },
@@ -31,7 +31,7 @@
           "api_token": "Integration token"
         },
         "data_description": {
-          "url": "For example https://budget.app.example.com. A pasted /api/integrations/v1 suffix is removed.",
+          "url": "For example {example_url}. A pasted /api/integrations/v1 suffix is removed.",
           "api_token": "The hf_... token, shown once when it was created."
         }
       }
@@ -41,7 +41,7 @@
       "invalid_auth": "The token was rejected (unknown, revoked or expired).",
       "no_scopes": "The token has none of the scopes kids:read, pots:read, periods:read or years:read.",
       "unsupported_api": "The server speaks an unsupported Integration API version.",
-      "invalid_url": "Enter an http:// or https:// address.",
+      "invalid_url": "Enter an address that starts with http or https.",
       "unknown": "Unexpected error."
     },
     "abort": {
