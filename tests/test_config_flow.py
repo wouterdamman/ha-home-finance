@@ -66,8 +66,8 @@ def _info(**changes: Any) -> dict[str, Any]:
     [
         ((401, error("unauthorized")), BASE_URL, "invalid_auth"),
         (TimeoutError(), BASE_URL, "cannot_connect"),
-        ((500, error("db_error")), BASE_URL, "cannot_connect"),
-        (None, BASE_URL, "cannot_connect"),  # no /info at all: not home-finance
+        ((500, error("db_error")), BASE_URL, "unknown"),
+        (None, BASE_URL, "unknown"),  # no /info at all: not home-finance
         (_info(apiVersion=2), BASE_URL, "unsupported_api"),
         (_info(scopes=[]), BASE_URL, "no_scopes"),
         (_info(scopes=["other:read"]), BASE_URL, "no_scopes"),

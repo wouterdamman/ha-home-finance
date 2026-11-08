@@ -293,7 +293,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up home-finance sensors."""
-    async_setup_entities(entry, async_add_entities, HomeFinanceSensor, SENSORS)
+    async_setup_entities(hass, entry, async_add_entities, HomeFinanceSensor, SENSORS)
 
 
 class HomeFinanceSensor(HomeFinanceEntity, SensorEntity):

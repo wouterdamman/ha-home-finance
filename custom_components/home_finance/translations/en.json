@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to home-finance",
-        "description": "Enter the address of your home-finance server (version 1.26.0 or newer) and an integration token created under Settings > Integrations. Only grant the scopes you want visible in Home Assistant.",
+        "description": "Enter the address of your home-finance server (version 1.26.0 or newer) and an integration token created under Settings > Integrations. Only grant the scopes you want visible in Home Assistant. Use https unless the server is inside your own network: the token is sent with every request.",
         "data": {
           "url": "Base URL",
           "api_token": "Integration token"

@@ -399,6 +399,21 @@ async def test_older_server_without_endpoints(
     assert "home-finance >= 1.26.0 is required" in caplog.text
 
 
+async def test_proxy_403_at_setup_retries_and_keeps_devices(
+    hass: HomeAssistant, server: Server, config_entry: MockConfigEntry
+) -> None:
+    """A proxy 403 page is not insufficient_scope: retry, do not prune devices."""
+    server()
+    await _setup(hass, config_entry)
+    await hass.config_entries.async_unload(config_entry.entry_id)
+    server({"/pots": (403, {"detail": "forbidden by proxy"})})
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY
+    assert "Vacation" in _devices(hass, config_entry)
+    assert not _issues(hass)
+
+
 async def test_missing_endpoint_skips_scope(
     hass: HomeAssistant,
     server: Server,
@@ -510,6 +525,9 @@ async def test_scope_dropped_from_token_at_setup(
     assert _issues(hass) == {f"{config_entry.entry_id}_scope_lost_pots"}
     assert "Vacation" not in _devices(hass, config_entry)
     assert "Sam" in _devices(hass, config_entry)
+    registry = er.async_get(hass)
+    assert registry.async_get("sensor.household_pots_total") is None
+    assert registry.async_get("sensor.household_kids_total") is not None
 
 
 async def test_scan_interval_option(hass: HomeAssistant, server: Server, aioclient_mock) -> None:
@@ -561,6 +579,10 @@ async def test_remove_config_entry_device(
         identifiers={(DOMAIN, f"{config_entry.entry_id}_kid_ghost")},
     )
     assert await async_remove_config_entry_device(hass, config_entry, ghost)
+
+    # Not loaded (unloaded or retrying setup): never allow, never crash.
+    await hass.config_entries.async_unload(config_entry.entry_id)
+    assert not await async_remove_config_entry_device(hass, config_entry, ghost)
 
 
 async def test_stale_device_removed_at_startup(

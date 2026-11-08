@@ -8,7 +8,8 @@ from decimal import Decimal
 from typing import Any
 
 from homeassistant.const import CONF_URL
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -138,7 +139,24 @@ class HomeFinanceEntity(CoordinatorEntity[HomeFinanceCoordinator[Any]]):
         return super().available and self.item is not None
 
 
+@callback
+def _remove_entities(
+    hass: HomeAssistant,
+    entry: HomeFinanceConfigEntry,
+    kind: str,
+    descs: tuple[EntityDescription, ...],
+) -> None:
+    """Remove household entities of a scope the token no longer has (or the server lacks)."""
+    registry = er.async_get(hass)
+    for desc in descs:
+        unique_id = f"{device_identifier(entry, kind)}_{desc.key}"
+        for domain in ("sensor", "binary_sensor"):
+            if entity_id := registry.async_get_entity_id(domain, DOMAIN, unique_id):
+                registry.async_remove(entity_id)
+
+
 def async_setup_entities(
+    hass: HomeAssistant,
     entry: HomeFinanceConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
     entity_cls: type[HomeFinanceEntity],
@@ -152,7 +170,9 @@ def async_setup_entities(
     """
     for (scope, kind), descs in descriptions.items():
         coordinator = entry.runtime_data.coordinators.get(scope)
-        if coordinator is None or not descs:
+        if coordinator is None:
+            if kind == KIND_HOUSEHOLD:
+                _remove_entities(hass, entry, KIND_HOUSEHOLD, descs)
             continue
         if kind == KIND_HOUSEHOLD:
             async_add_entities(entity_cls(coordinator, entry, d, kind) for d in descs)

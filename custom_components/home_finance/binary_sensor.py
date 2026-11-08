@@ -43,6 +43,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up home-finance binary sensors."""
     async_setup_entities(
+        hass,
         entry,
         async_add_entities,
         HomeFinanceBinarySensor,

@@ -104,6 +104,18 @@ async def test_error_mapping(
     assert TOKEN not in str(info.value)
 
 
+@pytest.mark.parametrize("status", [403, 404])
+async def test_proxy_errors_are_server_errors(
+    aioclient_mock: AiohttpClientMocker, status: int
+) -> None:
+    """A 403/404 without the API's error body (proxy, WAF) is not a scope or slug signal."""
+    aioclient_mock.get(API + "/kids", status=status, text="<html>blocked</html>")
+    async with _session(aioclient_mock) as session:
+        client = HomeFinanceClient(session, BASE_URL, TOKEN)
+        with pytest.raises(HomeFinanceServerError):
+            await client.kids()
+
+
 async def test_non_json_body(aioclient_mock: AiohttpClientMocker) -> None:
     aioclient_mock.get(API + "/info", status=502, text="<html>bad gateway</html>")
     async with _session(aioclient_mock) as session:

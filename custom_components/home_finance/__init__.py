@@ -104,6 +104,8 @@ async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: HomeFinanceConfigEntry, device: dr.DeviceEntry
 ) -> bool:
     """Allow deleting a device by hand only when the API no longer lists it."""
+    if getattr(entry, "runtime_data", None) is None:
+        return False
     valid = current_device_identifiers(entry)
     return not any(domain == DOMAIN and ident in valid for domain, ident in device.identifiers)
 
@@ -116,7 +118,9 @@ def device_identifier(entry: ConfigEntry, kind: str, slug: str | None = None) ->
 def current_device_identifiers(entry: HomeFinanceConfigEntry) -> set[str]:
     """Return the identifiers of every device the latest API data describes."""
     valid = {device_identifier(entry, "household")}
-    for coordinator in entry.runtime_data.coordinators.values():
+    # runtime_data is unset while the entry is not loaded (setup retry, unloaded).
+    runtime: HomeFinanceRuntimeData | None = getattr(entry, "runtime_data", None)
+    for coordinator in runtime.coordinators.values() if runtime else ():
         if isinstance(coordinator, KidsCoordinator) and coordinator.data:
             valid.update(device_identifier(entry, "kid", s) for s in coordinator.data.items)
         if isinstance(coordinator, PotsCoordinator) and coordinator.data:

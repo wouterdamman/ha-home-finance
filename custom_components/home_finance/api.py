@@ -132,9 +132,11 @@ class HomeFinanceClient:
             raise HomeFinanceServerError(status, "invalid_body", "expected a JSON object")
         if status == 401:
             raise HomeFinanceAuthError(status, code, message)
-        if status == 403:
+        # Only trust 403/404 when the body is the API's own error: a proxy or
+        # WAF page must not make a scope look withdrawn or an endpoint missing.
+        if status == 403 and code == "insufficient_scope":
             raise HomeFinanceScopeError(status, code, message)
-        if status == 404:
+        if status == 404 and code == "not_found":
             raise HomeFinanceNotFoundError(status, code, message)
         raise HomeFinanceServerError(status, code, message)
 

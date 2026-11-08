@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Verbinden met home-finance",
-        "description": "Vul het adres van je home-finance-server in (versie 1.26.0 of nieuwer) en een integratietoken dat je aanmaakt onder Instellingen > Integraties. Geef alleen de scopes die je in Home Assistant zichtbaar wilt hebben.",
+        "description": "Vul het adres van je home-finance-server in (versie 1.26.0 of nieuwer) en een integratietoken dat je aanmaakt onder Instellingen > Integraties. Geef alleen de scopes die je in Home Assistant zichtbaar wilt hebben. Gebruik https, tenzij de server in je eigen netwerk staat: het token gaat met elk verzoek mee.",
         "data": {
           "url": "Basis-URL",
           "api_token": "Integratietoken"

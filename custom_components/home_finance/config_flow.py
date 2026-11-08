@@ -67,7 +67,7 @@ async def _validate(flow: ConfigFlow, url: str, token: str) -> tuple[str, JSON]:
         raise FlowError("cannot_connect") from err
     except HomeFinanceError as err:
         _LOGGER.debug("Unexpected answer from /info: %s", err)
-        raise FlowError("cannot_connect") from err
+        raise FlowError("unknown") from err
     if info.get("apiVersion") != SUPPORTED_API_VERSION:
         raise FlowError("unsupported_api")
     scopes = info.get("scopes")
