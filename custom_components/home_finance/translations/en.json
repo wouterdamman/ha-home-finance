@@ -1,0 +1,317 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to home-finance",
+        "description": "Enter the address of your home-finance server (version 1.26.0 or newer) and an integration token created under Settings > Integrations. Only grant the scopes you want visible in Home Assistant.",
+        "data": {
+          "url": "Base URL",
+          "api_token": "Integration token"
+        },
+        "data_description": {
+          "url": "For example https://budget.app.example.com. A pasted /api/integrations/v1 suffix is removed.",
+          "api_token": "The hf_... token, shown once when it was created."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Token rejected",
+        "description": "The token for {url} was rejected. Tokens always expire (at most after 2 years) and can be revoked. Create a new token with the same scopes and enter it here.",
+        "data": {
+          "api_token": "Integration token"
+        },
+        "data_description": {
+          "api_token": "The hf_... token, shown once when it was created."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure home-finance",
+        "description": "Change the server address or the token.",
+        "data": {
+          "url": "Base URL",
+          "api_token": "Integration token"
+        },
+        "data_description": {
+          "url": "For example https://budget.app.example.com. A pasted /api/integrations/v1 suffix is removed.",
+          "api_token": "The hf_... token, shown once when it was created."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot reach the server (timeout, DNS or TLS error).",
+      "invalid_auth": "The token was rejected (unknown, revoked or expired).",
+      "no_scopes": "The token has none of the scopes kids:read, pots:read, periods:read or years:read.",
+      "unsupported_api": "The server speaks an unsupported Integration API version.",
+      "invalid_url": "Enter an http:// or https:// address.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This server is already configured.",
+      "reauth_successful": "The token was updated.",
+      "reconfigure_successful": "The configuration was updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "scan_interval": "Update interval (minutes)"
+        },
+        "data_description": {
+          "scan_interval": "Data changes a few times a month; 15 minutes is plenty. Minimum 5."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "goal_reached": {
+        "name": "Goal reached"
+      }
+    },
+    "sensor": {
+      "total": {
+        "name": "Total"
+      },
+      "ours": {
+        "name": "Saved by us"
+      },
+      "theirs": {
+        "name": "Own money"
+      },
+      "net_this_month": {
+        "name": "Net this month"
+      },
+      "net_this_year": {
+        "name": "Net this year"
+      },
+      "deposits_this_month": {
+        "name": "Deposited this month"
+      },
+      "deposits_this_year": {
+        "name": "Deposited this year"
+      },
+      "bank_balance": {
+        "name": "Bank balance",
+        "state_attributes": {
+          "reported_balance_date": {
+            "name": "Reported on"
+          }
+        }
+      },
+      "bank_difference": {
+        "name": "Bank difference",
+        "state_attributes": {
+          "reported_balance_date": {
+            "name": "Reported on"
+          }
+        }
+      },
+      "last_entry": {
+        "name": "Last entry",
+        "state_attributes": {
+          "type": {
+            "name": "Type"
+          },
+          "owner": {
+            "name": "Owner"
+          },
+          "amount": {
+            "name": "Amount"
+          }
+        }
+      },
+      "last_entry_amount": {
+        "name": "Last entry amount"
+      },
+      "opening_balance": {
+        "name": "Opening balance"
+      },
+      "deposits": {
+        "name": "Total deposits"
+      },
+      "withdrawals": {
+        "name": "Total withdrawals"
+      },
+      "adjustments": {
+        "name": "Total adjustments"
+      },
+      "withdrawals_this_month": {
+        "name": "Withdrawn this month"
+      },
+      "withdrawals_this_year": {
+        "name": "Withdrawn this year"
+      },
+      "ours_net_this_month": {
+        "name": "Saved by us net this month"
+      },
+      "ours_net_this_year": {
+        "name": "Saved by us net this year"
+      },
+      "theirs_net_this_month": {
+        "name": "Own money net this month"
+      },
+      "theirs_net_this_year": {
+        "name": "Own money net this year"
+      },
+      "balance": {
+        "name": "Balance"
+      },
+      "target": {
+        "name": "Target"
+      },
+      "progress": {
+        "name": "Progress"
+      },
+      "remaining": {
+        "name": "Remaining"
+      },
+      "needed_per_month": {
+        "name": "Needed per month"
+      },
+      "months_left": {
+        "name": "Months left"
+      },
+      "target_date": {
+        "name": "Target date"
+      },
+      "allocated_this_month": {
+        "name": "Allocated this month"
+      },
+      "allocated_this_year": {
+        "name": "Allocated this year"
+      },
+      "split": {
+        "name": "Split",
+        "state_attributes": {
+          "period_year": {
+            "name": "Period year"
+          },
+          "period_month": {
+            "name": "Period month"
+          },
+          "period_status": {
+            "name": "Period status"
+          }
+        }
+      },
+      "allocations": {
+        "name": "Total allocations"
+      },
+      "carryover_out": {
+        "name": "Total carried over"
+      },
+      "kids_total": {
+        "name": "Kids total"
+      },
+      "kids_ours": {
+        "name": "Kids saved by us"
+      },
+      "kids_theirs": {
+        "name": "Kids own money"
+      },
+      "pots_total": {
+        "name": "Pots total"
+      },
+      "pots_target_total": {
+        "name": "Pots target total"
+      },
+      "month_income": {
+        "name": "Month income",
+        "state_attributes": {
+          "year": {
+            "name": "Year"
+          },
+          "month": {
+            "name": "Month"
+          },
+          "is_current_month": {
+            "name": "Current month"
+          },
+          "closed_at": {
+            "name": "Closed at"
+          }
+        }
+      },
+      "month_expenses": {
+        "name": "Month expenses",
+        "state_attributes": {
+          "year": {
+            "name": "Year"
+          },
+          "month": {
+            "name": "Month"
+          },
+          "is_current_month": {
+            "name": "Current month"
+          },
+          "closed_at": {
+            "name": "Closed at"
+          }
+        }
+      },
+      "month_surplus": {
+        "name": "Month surplus",
+        "state_attributes": {
+          "year": {
+            "name": "Year"
+          },
+          "month": {
+            "name": "Month"
+          },
+          "is_current_month": {
+            "name": "Current month"
+          },
+          "closed_at": {
+            "name": "Closed at"
+          }
+        }
+      },
+      "month_status": {
+        "name": "Month status",
+        "state_attributes": {
+          "year": {
+            "name": "Year"
+          },
+          "month": {
+            "name": "Month"
+          },
+          "is_current_month": {
+            "name": "Current month"
+          },
+          "closed_at": {
+            "name": "Closed at"
+          }
+        },
+        "state": {
+          "open": "Open",
+          "closed": "Closed"
+        }
+      },
+      "year_income": {
+        "name": "Year income"
+      },
+      "year_expenses": {
+        "name": "Year expenses"
+      },
+      "year_surplus": {
+        "name": "Year surplus"
+      },
+      "year_average_monthly_surplus": {
+        "name": "Year average monthly surplus"
+      },
+      "year_periods_open": {
+        "name": "Year open periods"
+      },
+      "year_periods_closed": {
+        "name": "Year closed periods"
+      }
+    }
+  },
+  "issues": {
+    "scope_lost": {
+      "title": "home-finance token lost scope {scope}",
+      "description": "The configured token no longer grants {scope}, so its entities are unavailable or removed. Token scopes cannot be changed: create a new token with the scopes you need under Settings > Integrations in home-finance, then reconfigure this integration with it."
+    }
+  }
+}

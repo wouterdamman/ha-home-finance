@@ -1,0 +1,4 @@
+# Pins Home Assistant 2026.10.4, the version the tests run against (see hacs.json).
+pytest-homeassistant-custom-component==0.13.375
+pytest-cov
+ruff==0.17.4

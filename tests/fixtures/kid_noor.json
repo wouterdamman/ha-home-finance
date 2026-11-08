@@ -1,0 +1,84 @@
+{
+  "slug": "noor",
+  "name": "Noor",
+  "totalCents": 52000,
+  "combined": {
+    "openingBalanceCents": 95000,
+    "depositsCents": 12500,
+    "withdrawalsCents": 3500,
+    "adjustmentsCents": 0,
+    "thisMonth": {
+      "depositsCents": 3000,
+      "withdrawalsCents": 0,
+      "adjustmentsCents": 0,
+      "netCents": 3000
+    },
+    "thisYear": {
+      "depositsCents": 6500,
+      "withdrawalsCents": 3500,
+      "adjustmentsCents": 0,
+      "netCents": 3000
+    }
+  },
+  "pots": {
+    "ours": {
+      "owner": "ours",
+      "balanceCents": 50000,
+      "openingBalanceCents": 80000,
+      "depositsCents": 7500,
+      "withdrawalsCents": 0,
+      "adjustmentsCents": 0,
+      "thisMonth": {
+        "depositsCents": 2500,
+        "withdrawalsCents": 0,
+        "adjustmentsCents": 0,
+        "netCents": 2500
+      },
+      "thisYear": {
+        "depositsCents": 5000,
+        "withdrawalsCents": 0,
+        "adjustmentsCents": 0,
+        "netCents": 5000
+      },
+      "lastEntry": {
+        "date": "2026-11-02",
+        "type": "deposit",
+        "owner": "ours",
+        "amountCents": 2500
+      }
+    },
+    "theirs": {
+      "owner": "theirs",
+      "balanceCents": 2000,
+      "openingBalanceCents": 15000,
+      "depositsCents": 5000,
+      "withdrawalsCents": 3500,
+      "adjustmentsCents": 0,
+      "thisMonth": {
+        "depositsCents": 500,
+        "withdrawalsCents": 0,
+        "adjustmentsCents": 0,
+        "netCents": 500
+      },
+      "thisYear": {
+        "depositsCents": 1500,
+        "withdrawalsCents": 3500,
+        "adjustmentsCents": 0,
+        "netCents": -2000
+      },
+      "lastEntry": null
+    }
+  },
+  "bank": {
+    "reportedBalanceCents": null,
+    "reportedBalanceDate": null,
+    "differenceCents": null
+  },
+  "lastEntry": {
+    "date": "2026-11-02",
+    "type": "deposit",
+    "owner": "ours",
+    "amountCents": 2500
+  },
+  "generatedAt": "2026-11-08T13:16:15Z"
+}

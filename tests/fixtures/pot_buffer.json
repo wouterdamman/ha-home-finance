@@ -1,0 +1,38 @@
+{
+  "slug": "buffer",
+  "name": "Buffer",
+  "kind": "normal",
+  "balanceCents": 250000,
+  "flows": {
+    "openingBalanceCents": 50000,
+    "allocationsCents": 180000,
+    "depositsCents": 20000,
+    "withdrawalsCents": 50000,
+    "carryoverOutCents": 0,
+    "adjustmentsCents": -5000,
+    "thisMonth": {
+      "allocationsCents": 0,
+      "depositsCents": 5000,
+      "withdrawalsCents": 0,
+      "carryoverOutCents": 0,
+      "adjustmentsCents": 0,
+      "netCents": 5000
+    },
+    "thisYear": {
+      "allocationsCents": 150000,
+      "depositsCents": 15000,
+      "withdrawalsCents": 50000,
+      "carryoverOutCents": 0,
+      "adjustmentsCents": -5000,
+      "netCents": 110000
+    }
+  },
+  "target": null,
+  "split": null,
+  "lastEntry": {
+    "date": "2026-11-02",
+    "type": "deposit",
+    "amountCents": 5000
+  },
+  "generatedAt": "2026-11-08T14:00:59Z"
+}

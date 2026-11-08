@@ -1,0 +1,317 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbinden met home-finance",
+        "description": "Vul het adres van je home-finance-server in (versie 1.26.0 of nieuwer) en een integratietoken dat je aanmaakt onder Instellingen > Integraties. Geef alleen de scopes die je in Home Assistant zichtbaar wilt hebben.",
+        "data": {
+          "url": "Basis-URL",
+          "api_token": "Integratietoken"
+        },
+        "data_description": {
+          "url": "Bijvoorbeeld https://budget.app.example.com. Een geplakte /api/integrations/v1 wordt verwijderd.",
+          "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Token geweigerd",
+        "description": "Het token voor {url} werd geweigerd. Tokens verlopen altijd (uiterlijk na 2 jaar) en kunnen ingetrokken worden. Maak een nieuw token met dezelfde scopes en vul het hier in.",
+        "data": {
+          "api_token": "Integratietoken"
+        },
+        "data_description": {
+          "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken."
+        }
+      },
+      "reconfigure": {
+        "title": "home-finance opnieuw configureren",
+        "description": "Wijzig het serveradres of het token.",
+        "data": {
+          "url": "Basis-URL",
+          "api_token": "Integratietoken"
+        },
+        "data_description": {
+          "url": "Bijvoorbeeld https://budget.app.example.com. Een geplakte /api/integrations/v1 wordt verwijderd.",
+          "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Server niet bereikbaar (time-out, DNS- of TLS-fout).",
+      "invalid_auth": "Het token werd geweigerd (onbekend, ingetrokken of verlopen).",
+      "no_scopes": "Het token heeft geen van de scopes kids:read, pots:read, periods:read of years:read.",
+      "unsupported_api": "De server gebruikt een niet-ondersteunde versie van de Integration API.",
+      "invalid_url": "Vul een http://- of https://-adres in.",
+      "unknown": "Onverwachte fout."
+    },
+    "abort": {
+      "already_configured": "Deze server is al geconfigureerd.",
+      "reauth_successful": "Het token is bijgewerkt.",
+      "reconfigure_successful": "De configuratie is bijgewerkt."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties",
+        "data": {
+          "scan_interval": "Update-interval (minuten)"
+        },
+        "data_description": {
+          "scan_interval": "De gegevens veranderen een paar keer per maand; 15 minuten is ruim genoeg. Minimaal 5."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "goal_reached": {
+        "name": "Spaardoel bereikt"
+      }
+    },
+    "sensor": {
+      "total": {
+        "name": "Totaal"
+      },
+      "ours": {
+        "name": "Door ons gespaard"
+      },
+      "theirs": {
+        "name": "Eigen geld"
+      },
+      "net_this_month": {
+        "name": "Netto deze maand"
+      },
+      "net_this_year": {
+        "name": "Netto dit jaar"
+      },
+      "deposits_this_month": {
+        "name": "Gestort deze maand"
+      },
+      "deposits_this_year": {
+        "name": "Gestort dit jaar"
+      },
+      "bank_balance": {
+        "name": "Banksaldo",
+        "state_attributes": {
+          "reported_balance_date": {
+            "name": "Gemeld op"
+          }
+        }
+      },
+      "bank_difference": {
+        "name": "Verschil met bank",
+        "state_attributes": {
+          "reported_balance_date": {
+            "name": "Gemeld op"
+          }
+        }
+      },
+      "last_entry": {
+        "name": "Laatste boeking",
+        "state_attributes": {
+          "type": {
+            "name": "Soort"
+          },
+          "owner": {
+            "name": "Eigenaar"
+          },
+          "amount": {
+            "name": "Bedrag"
+          }
+        }
+      },
+      "last_entry_amount": {
+        "name": "Bedrag laatste boeking"
+      },
+      "opening_balance": {
+        "name": "Beginsaldo"
+      },
+      "deposits": {
+        "name": "Totaal gestort"
+      },
+      "withdrawals": {
+        "name": "Totaal opgenomen"
+      },
+      "adjustments": {
+        "name": "Totaal correcties"
+      },
+      "withdrawals_this_month": {
+        "name": "Opgenomen deze maand"
+      },
+      "withdrawals_this_year": {
+        "name": "Opgenomen dit jaar"
+      },
+      "ours_net_this_month": {
+        "name": "Door ons gespaard netto deze maand"
+      },
+      "ours_net_this_year": {
+        "name": "Door ons gespaard netto dit jaar"
+      },
+      "theirs_net_this_month": {
+        "name": "Eigen geld netto deze maand"
+      },
+      "theirs_net_this_year": {
+        "name": "Eigen geld netto dit jaar"
+      },
+      "balance": {
+        "name": "Saldo"
+      },
+      "target": {
+        "name": "Spaardoel"
+      },
+      "progress": {
+        "name": "Voortgang"
+      },
+      "remaining": {
+        "name": "Nog te sparen"
+      },
+      "needed_per_month": {
+        "name": "Nodig per maand"
+      },
+      "months_left": {
+        "name": "Maanden te gaan"
+      },
+      "target_date": {
+        "name": "Doeldatum"
+      },
+      "allocated_this_month": {
+        "name": "Toegewezen deze maand"
+      },
+      "allocated_this_year": {
+        "name": "Toegewezen dit jaar"
+      },
+      "split": {
+        "name": "Verdeling",
+        "state_attributes": {
+          "period_year": {
+            "name": "Jaar periode"
+          },
+          "period_month": {
+            "name": "Maand periode"
+          },
+          "period_status": {
+            "name": "Status periode"
+          }
+        }
+      },
+      "allocations": {
+        "name": "Totaal toegewezen"
+      },
+      "carryover_out": {
+        "name": "Totaal doorgeschoven"
+      },
+      "kids_total": {
+        "name": "Kinderen totaal"
+      },
+      "kids_ours": {
+        "name": "Kinderen door ons gespaard"
+      },
+      "kids_theirs": {
+        "name": "Kinderen eigen geld"
+      },
+      "pots_total": {
+        "name": "Potjes totaal"
+      },
+      "pots_target_total": {
+        "name": "Potjes spaardoel totaal"
+      },
+      "month_income": {
+        "name": "Inkomsten deze maand",
+        "state_attributes": {
+          "year": {
+            "name": "Jaar"
+          },
+          "month": {
+            "name": "Maand"
+          },
+          "is_current_month": {
+            "name": "Huidige maand"
+          },
+          "closed_at": {
+            "name": "Afgesloten op"
+          }
+        }
+      },
+      "month_expenses": {
+        "name": "Uitgaven deze maand",
+        "state_attributes": {
+          "year": {
+            "name": "Jaar"
+          },
+          "month": {
+            "name": "Maand"
+          },
+          "is_current_month": {
+            "name": "Huidige maand"
+          },
+          "closed_at": {
+            "name": "Afgesloten op"
+          }
+        }
+      },
+      "month_surplus": {
+        "name": "Overschot deze maand",
+        "state_attributes": {
+          "year": {
+            "name": "Jaar"
+          },
+          "month": {
+            "name": "Maand"
+          },
+          "is_current_month": {
+            "name": "Huidige maand"
+          },
+          "closed_at": {
+            "name": "Afgesloten op"
+          }
+        }
+      },
+      "month_status": {
+        "name": "Status maand",
+        "state_attributes": {
+          "year": {
+            "name": "Jaar"
+          },
+          "month": {
+            "name": "Maand"
+          },
+          "is_current_month": {
+            "name": "Huidige maand"
+          },
+          "closed_at": {
+            "name": "Afgesloten op"
+          }
+        },
+        "state": {
+          "open": "Open",
+          "closed": "Afgesloten"
+        }
+      },
+      "year_income": {
+        "name": "Inkomsten dit jaar"
+      },
+      "year_expenses": {
+        "name": "Uitgaven dit jaar"
+      },
+      "year_surplus": {
+        "name": "Overschot dit jaar"
+      },
+      "year_average_monthly_surplus": {
+        "name": "Gemiddeld overschot per maand dit jaar"
+      },
+      "year_periods_open": {
+        "name": "Open maanden dit jaar"
+      },
+      "year_periods_closed": {
+        "name": "Afgesloten maanden dit jaar"
+      }
+    }
+  },
+  "issues": {
+    "scope_lost": {
+      "title": "home-finance-token mist scope {scope}",
+      "description": "Het geconfigureerde token geeft geen toegang meer tot {scope}, dus de bijbehorende entiteiten zijn niet beschikbaar of verwijderd. Scopes van een token zijn niet aan te passen: maak in home-finance onder Instellingen > Integraties een nieuw token met de scopes die je nodig hebt en configureer deze integratie daarmee opnieuw."
+    }
+  }
+}

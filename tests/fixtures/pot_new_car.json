@@ -1,0 +1,51 @@
+{
+  "slug": "new-car",
+  "name": "New car",
+  "kind": "normal",
+  "balanceCents": 120000,
+  "flows": {
+    "openingBalanceCents": 50000,
+    "allocationsCents": 180000,
+    "depositsCents": 20000,
+    "withdrawalsCents": 50000,
+    "carryoverOutCents": 0,
+    "adjustmentsCents": -5000,
+    "thisMonth": {
+      "allocationsCents": 0,
+      "depositsCents": 5000,
+      "withdrawalsCents": 0,
+      "carryoverOutCents": 0,
+      "adjustmentsCents": 0,
+      "netCents": 5000
+    },
+    "thisYear": {
+      "allocationsCents": 150000,
+      "depositsCents": 15000,
+      "withdrawalsCents": 50000,
+      "carryoverOutCents": 0,
+      "adjustmentsCents": -5000,
+      "netCents": 110000
+    }
+  },
+  "target": {
+    "targetCents": 400000,
+    "targetDate": null,
+    "remainingCents": 280000,
+    "progressPercent": 30,
+    "reached": false,
+    "monthsLeft": null,
+    "neededPerMonthCents": null
+  },
+  "split": {
+    "percentage": 25,
+    "periodYear": 2026,
+    "periodMonth": 11,
+    "periodStatus": "open"
+  },
+  "lastEntry": {
+    "date": "2026-11-02",
+    "type": "deposit",
+    "amountCents": 5000
+  },
+  "generatedAt": "2026-11-08T14:00:59Z"
+}

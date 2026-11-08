@@ -1,0 +1,41 @@
+{
+  "pots": [
+    {
+      "slug": "vacation",
+      "name": "Vacation",
+      "kind": "normal",
+      "balanceCents": 195000,
+      "targetCents": 300000,
+      "progressPercent": 65
+    },
+    {
+      "slug": "new-car",
+      "name": "New car",
+      "kind": "normal",
+      "balanceCents": 120000,
+      "targetCents": 400000,
+      "progressPercent": 30
+    },
+    {
+      "slug": "buffer",
+      "name": "Buffer",
+      "kind": "normal",
+      "balanceCents": 250000,
+      "targetCents": null,
+      "progressPercent": null
+    },
+    {
+      "slug": "carryover",
+      "name": "Carryover",
+      "kind": "carryover",
+      "balanceCents": 15000,
+      "targetCents": null,
+      "progressPercent": null
+    }
+  ],
+  "totals": {
+    "balanceCents": 580000,
+    "targetCents": 700000
+  },
+  "generatedAt": "2026-11-08T14:00:59Z"
+}

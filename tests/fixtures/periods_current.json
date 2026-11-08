@@ -1,0 +1,11 @@
+{
+  "year": 2026,
+  "month": 11,
+  "status": "open",
+  "closedAt": null,
+  "isCurrentMonth": true,
+  "incomeCents": 485000,
+  "expenseCents": 312500,
+  "surplusCents": 172500,
+  "generatedAt": "2026-11-08T14:30:12Z"
+}

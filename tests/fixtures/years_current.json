@@ -1,0 +1,11 @@
+{
+  "year": 2026,
+  "locked": false,
+  "periodsOpen": 1,
+  "periodsClosed": 10,
+  "incomeCents": 5310000,
+  "expenseCents": 4688750,
+  "surplusCents": 621250,
+  "averageMonthlySurplusCents": 56477,
+  "generatedAt": "2026-11-08T14:30:12Z"
+}

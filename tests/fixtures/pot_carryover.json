@@ -1,0 +1,43 @@
+{
+  "slug": "carryover",
+  "name": "Carryover",
+  "kind": "carryover",
+  "balanceCents": 15000,
+  "flows": {
+    "openingBalanceCents": 0,
+    "allocationsCents": 60000,
+    "depositsCents": 0,
+    "withdrawalsCents": 0,
+    "carryoverOutCents": 45000,
+    "adjustmentsCents": 0,
+    "thisMonth": {
+      "allocationsCents": 0,
+      "depositsCents": 0,
+      "withdrawalsCents": 0,
+      "carryoverOutCents": 0,
+      "adjustmentsCents": 0,
+      "netCents": 0
+    },
+    "thisYear": {
+      "allocationsCents": 60000,
+      "depositsCents": 0,
+      "withdrawalsCents": 0,
+      "carryoverOutCents": 45000,
+      "adjustmentsCents": 0,
+      "netCents": 15000
+    }
+  },
+  "target": null,
+  "split": {
+    "percentage": 15,
+    "periodYear": 2026,
+    "periodMonth": 11,
+    "periodStatus": "open"
+  },
+  "lastEntry": {
+    "date": "2026-11-03",
+    "type": "carryover_out",
+    "amountCents": -45000
+  },
+  "generatedAt": "2026-11-08T14:00:59Z"
+}

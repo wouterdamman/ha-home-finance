@@ -1,0 +1,31 @@
+{
+  "kids": [
+    {
+      "slug": "sam",
+      "name": "Sam",
+      "totalCents": 104000,
+      "oursCents": 87500,
+      "theirsCents": 16500
+    },
+    {
+      "slug": "noor",
+      "name": "Noor",
+      "totalCents": 52000,
+      "oursCents": 50000,
+      "theirsCents": 2000
+    },
+    {
+      "slug": "mila",
+      "name": "Mila",
+      "totalCents": 25300,
+      "oursCents": 22300,
+      "theirsCents": 3000
+    }
+  ],
+  "totals": {
+    "totalCents": 181300,
+    "oursCents": 159800,
+    "theirsCents": 21500
+  },
+  "generatedAt": "2026-11-08T13:16:15Z"
+}
