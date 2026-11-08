@@ -9,3 +9,5 @@ htmlcov/
 .DS_Store
 # Environment and secrets: never commit a token.
 .env*
+# Local Claude Code session state.
+.claude/
