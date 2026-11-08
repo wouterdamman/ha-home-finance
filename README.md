@@ -13,7 +13,9 @@ guide.
 - Read-only. Nothing is ever written to home-finance.
 - Polls every 15 minutes by default (configurable, minimum 5).
 
-Requires **home-finance 1.26.0 or newer** and Home Assistant 2026.10.4 or newer.
+Requires **home-finance 1.26.0 or newer** and Home Assistant 2026.11.0 or newer. (The test
+suite runs against 2026.10.4, the newest version `pytest-homeassistant-custom-component`
+supports so far.)
 
 ## Installation (HACS)
 
@@ -23,8 +25,12 @@ Requires **home-finance 1.26.0 or newer** and Home Assistant 2026.10.4 or newer.
 3. Search HACS for **home-finance**, open it and click **Download**.
 4. Restart Home Assistant.
 5. Go to **Settings > Devices & services > Add integration** and choose **home-finance**.
-6. Enter the base URL of your server (for example `https://budget.app.example.com`) and the
-   token (see below).
+6. A form opens. Enter:
+   - the base URL of your server, for example `https://budget.app.example.com`;
+   - the token (see below). It is a password field and is stored as a secret;
+   - the name of the **Household** device that holds the totals. The suggestion is `Huishouden`
+     on a Dutch-language Home Assistant and `Household` otherwise. The household entity IDs are
+     derived from it, for example `sensor.huishouden_kids_total`.
 
 ## Creating a token
 
@@ -51,7 +57,8 @@ The API does not expose a token's expiry, so this integration cannot warn you in
 token list in home-finance shows each token's expiry; rotate a few weeks before:
 
 1. Create a new token with the same scopes.
-2. In Home Assistant open the integration, choose **Reconfigure** and paste the new token.
+2. In Home Assistant open the integration, choose **Reconfigure** and paste the new token. The
+   same form also changes the server URL and the Household device name.
 3. Revoke the old token in home-finance.
 
 If a token expires or is revoked anyway, the server answers `401` and Home Assistant shows a
@@ -59,8 +66,10 @@ If a token expires or is revoked anyway, the server answers `401` and Home Assis
 
 ## Entities
 
-Entity IDs below are what Home Assistant generates on an English-language install (device name +
-entity name). Kid and pot device names come from home-finance, for example `Sam` or `New car`.
+Entity IDs below are what Home Assistant generates from device name + entity name, with the
+Household device named `Household`. With another name, for example `Huishouden`, the household
+entities become `sensor.huishouden_*`. Entity names are shown in Dutch on a Dutch install, but the
+entity IDs are always generated from the English names. Kid and pot device names come from home-finance, for example `Sam` or `New car`.
 Money sensors are in EUR with 2 decimals; amounts come from the API as integer cents.
 
 Sensors marked *disabled* exist but are disabled by default. Enable them under the device if you

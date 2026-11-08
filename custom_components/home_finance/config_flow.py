@@ -31,9 +31,12 @@ from .api import (
     normalize_base_url,
 )
 from .const import (
+    CONF_HOUSEHOLD_NAME,
     CONF_SCOPES,
+    DEFAULT_HOUSEHOLD_NAME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    HOUSEHOLD_NAME_BY_LANGUAGE,
     MAX_SCAN_INTERVAL_MINUTES,
     MIN_SCAN_INTERVAL_MINUTES,
     SCOPES,
@@ -76,6 +79,22 @@ async def _validate(flow: ConfigFlow, url: str, token: str) -> tuple[str, JSON]:
     return base_url, info
 
 
+def _household_name(user_input: dict[str, Any]) -> dict[str, str]:
+    name = str(user_input.get(CONF_HOUSEHOLD_NAME) or "").strip()
+    return {CONF_HOUSEHOLD_NAME: name or DEFAULT_HOUSEHOLD_NAME}
+
+
+def _schema() -> vol.Schema:
+    """URL, token (a password field) and the name of the Household device."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_URL): URL_SELECTOR,
+            vol.Required(CONF_API_TOKEN): TOKEN_SELECTOR,
+            vol.Required(CONF_HOUSEHOLD_NAME): TextSelector(),
+        }
+    )
+
+
 def _data(base_url: str, token: str, info: JSON) -> dict[str, Any]:
     return {
         CONF_URL: base_url,
@@ -96,7 +115,7 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
         return HomeFinanceOptionsFlow()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Ask for the base URL and token."""
+        """Ask for the base URL, the token and the Household device name."""
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
@@ -110,18 +129,21 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
                 title = info.get("tokenName") or urlsplit(base_url).hostname or base_url
                 return self.async_create_entry(
-                    title=title, data=_data(base_url, user_input[CONF_API_TOKEN], info)
+                    title=title,
+                    data=_data(base_url, user_input[CONF_API_TOKEN], info)
+                    | _household_name(user_input),
                 )
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema(
-                    {
-                        vol.Required(CONF_URL): URL_SELECTOR,
-                        vol.Required(CONF_API_TOKEN): TOKEN_SELECTOR,
-                    }
-                ),
-                {CONF_URL: (user_input or {}).get(CONF_URL)},
+                _schema(),
+                {
+                    CONF_URL: (user_input or {}).get(CONF_URL),
+                    CONF_HOUSEHOLD_NAME: (user_input or {}).get(CONF_HOUSEHOLD_NAME)
+                    or HOUSEHOLD_NAME_BY_LANGUAGE.get(
+                        self.hass.config.language, DEFAULT_HOUSEHOLD_NAME
+                    ),
+                },
             ),
             description_placeholders=URL_PLACEHOLDERS,
             errors=errors,
@@ -158,7 +180,7 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Change the base URL and/or token."""
+        """Change the base URL, token or Household device name."""
         entry = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -176,18 +198,18 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_update_reload_and_abort(
                     entry,
                     unique_id=base_url,
-                    data_updates=_data(base_url, user_input[CONF_API_TOKEN], info),
+                    data_updates=_data(base_url, user_input[CONF_API_TOKEN], info)
+                    | _household_name(user_input),
                 )
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema(
-                    {
-                        vol.Required(CONF_URL): URL_SELECTOR,
-                        vol.Required(CONF_API_TOKEN): TOKEN_SELECTOR,
-                    }
-                ),
-                {CONF_URL: (user_input or entry.data).get(CONF_URL)},
+                _schema(),
+                {
+                    CONF_URL: (user_input or entry.data).get(CONF_URL),
+                    CONF_HOUSEHOLD_NAME: (user_input or entry.data).get(CONF_HOUSEHOLD_NAME)
+                    or DEFAULT_HOUSEHOLD_NAME,
+                },
             ),
             description_placeholders=URL_PLACEHOLDERS,
             errors=errors,

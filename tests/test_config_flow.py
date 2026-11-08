@@ -25,12 +25,14 @@ def no_setup():
         yield
 
 
-async def _user(hass: HomeAssistant, url: str = BASE_URL, token: str = TOKEN) -> dict[str, Any]:
+async def _user(
+    hass: HomeAssistant, url: str = BASE_URL, token: str = TOKEN, household: str = "Household"
+) -> dict[str, Any]:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
     return await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": url, "api_token": token}
+        result["flow_id"], {"url": url, "api_token": token, "household_name": household}
     )
 
 
@@ -43,8 +45,26 @@ async def test_user_success(hass: HomeAssistant, server: Server) -> None:
         "url": BASE_URL,
         "api_token": TOKEN,
         CONF_SCOPES: ["kids:read", "years:read"],
+        "household_name": "Household",
     }
     assert result["result"].unique_id == BASE_URL
+
+
+async def test_user_suggests_dutch_household_name(hass: HomeAssistant, server: Server) -> None:
+    hass.config.language = "nl"
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
+    schema = result["data_schema"].schema
+    key = next(k for k in schema if k == "household_name")
+    assert key.description == {"suggested_value": "Huishouden"}
+    # The token field is a password field.
+    token = next(k for k in schema if k == "api_token")
+    assert schema[token].config["type"] == "password"
+
+    server()
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"url": BASE_URL, "api_token": TOKEN, "household_name": "  "}
+    )
+    assert result["data"]["household_name"] == "Household"
 
 
 async def test_user_title_falls_back_to_host(hass: HomeAssistant, server: Server) -> None:
@@ -85,7 +105,7 @@ async def test_user_errors_then_recover(
 
     server()
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": BASE_URL, "api_token": TOKEN}
+        result["flow_id"], {"url": BASE_URL, "api_token": TOKEN, "household_name": "Household"}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
@@ -133,13 +153,14 @@ async def test_reconfigure_new_host(
     aioclient_mock.clear_requests()
     aioclient_mock.get(new_base + "/api/integrations/v1/info", json=load("info"))
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": new_base, "api_token": NEW_TOKEN}
+        result["flow_id"], {"url": new_base, "api_token": NEW_TOKEN, "household_name": "Household"}
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
     assert config_entry.data["url"] == new_base
     assert config_entry.data["api_token"] == NEW_TOKEN
     assert config_entry.unique_id == new_base
+    assert config_entry.data["household_name"] == "Household"
 
 
 async def test_reconfigure_same_host_and_errors(
@@ -149,13 +170,13 @@ async def test_reconfigure_same_host_and_errors(
     result = await config_entry.start_reconfigure_flow(hass)
     server({"/info": TimeoutError()})
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": BASE_URL, "api_token": NEW_TOKEN}
+        result["flow_id"], {"url": BASE_URL, "api_token": NEW_TOKEN, "household_name": "Household"}
     )
     assert result["errors"] == {"base": "cannot_connect"}
 
     server(scopes=ALL_SCOPES)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": BASE_URL, "api_token": NEW_TOKEN}
+        result["flow_id"], {"url": BASE_URL, "api_token": NEW_TOKEN, "household_name": "Household"}
     )
     assert result["reason"] == "reconfigure_successful"
     assert config_entry.data["api_token"] == NEW_TOKEN
@@ -172,7 +193,7 @@ async def test_reconfigure_to_other_entry_aborts(
     aioclient_mock.get(other + "/api/integrations/v1/info", json=load("info"))
     result = await config_entry.start_reconfigure_flow(hass)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"url": other, "api_token": TOKEN}
+        result["flow_id"], {"url": other, "api_token": TOKEN, "household_name": "Household"}
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"

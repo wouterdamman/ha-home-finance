@@ -18,7 +18,7 @@ from homeassistant.util import dt as dt_util
 
 from . import HomeFinanceConfigEntry, device_identifier
 from .api import JSON
-from .const import DOMAIN, MANUFACTURER, Scope
+from .const import CONF_HOUSEHOLD_NAME, DEFAULT_HOUSEHOLD_NAME, DOMAIN, MANUFACTURER, Scope
 from .coordinator import HomeFinanceCoordinator, ListData
 
 KIND_KID = "kid"
@@ -113,7 +113,8 @@ class HomeFinanceEntity(CoordinatorEntity[HomeFinanceCoordinator[Any]]):
         self._attr_unique_id = f"{ident}_{description.key}"
         item = self.item or {}
         if kind == KIND_HOUSEHOLD:
-            name, model = "Household", "Household"
+            name = entry.data.get(CONF_HOUSEHOLD_NAME) or DEFAULT_HOUSEHOLD_NAME
+            model = "Household"
         elif kind == KIND_KID:
             name, model = item.get("name") or slug, "Kid"
         else:

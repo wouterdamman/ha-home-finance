@@ -137,6 +137,24 @@ async def test_full_setup(
     assert _state(hass, "sensor.household_year_average_monthly_surplus") == "564.77"
 
 
+async def test_custom_household_name(hass: HomeAssistant, server: Server) -> None:
+    server()
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="https://budget.app.example.com",
+        data={
+            "url": "https://budget.app.example.com",
+            "api_token": TOKEN,
+            CONF_SCOPES: ["kids:read"],
+            "household_name": "Huishouden",
+        },
+    )
+    server(scopes=["kids:read"])
+    await _setup(hass, entry)
+    assert "Huishouden" in _devices(hass, entry)
+    assert _state(hass, "sensor.huishouden_kids_total") == "1813"
+
+
 async def test_flow_breakdowns_disabled_by_default(
     hass: HomeAssistant, server: Server, config_entry: MockConfigEntry
 ) -> None:

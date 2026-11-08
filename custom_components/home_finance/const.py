@@ -10,6 +10,11 @@ DOMAIN: Final = "home_finance"
 MANUFACTURER: Final = "home-finance"
 
 CONF_SCOPES: Final = "scopes"
+CONF_HOUSEHOLD_NAME: Final = "household_name"
+
+# Suggested name of the Household device; it also seeds its entity IDs.
+DEFAULT_HOUSEHOLD_NAME: Final = "Household"
+HOUSEHOLD_NAME_BY_LANGUAGE: Final = {"nl": "Huishouden"}
 
 DEFAULT_SCAN_INTERVAL: Final = timedelta(minutes=15)
 MIN_SCAN_INTERVAL_MINUTES: Final = 5
