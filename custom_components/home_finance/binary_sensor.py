@@ -13,7 +13,14 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import HomeFinanceConfigEntry
 from .api import JSON
 from .const import Scope
-from .entity import KIND_POT, HomeFinanceEntity, async_setup_entities, dig, has_target
+from .entity import (
+    KIND_POT,
+    HomeFinanceEntity,
+    async_setup_entities,
+    dig,
+    has_target,
+    with_default_enabled,
+)
 
 PARALLEL_UPDATES = 0
 
@@ -53,7 +60,7 @@ async def async_setup_entry(
         async_add_entities,
         platform=Platform.BINARY_SENSOR,
         entity_cls=HomeFinanceBinarySensor,
-        descriptions={(Scope.POTS, KIND_POT): POT_BINARY_SENSORS},
+        descriptions={(Scope.POTS, KIND_POT): with_default_enabled(KIND_POT, POT_BINARY_SENSORS)},
     )
 
 

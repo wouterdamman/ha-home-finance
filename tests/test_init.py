@@ -188,23 +188,105 @@ async def test_dutch_entity_ids(hass: HomeAssistant, server: Server) -> None:
     assert hass.states.get("sensor.sam_total") is None
 
 
-async def test_flow_breakdowns_disabled_by_default(
+@pytest.mark.compact_defaults
+async def test_compact_default_set(
     hass: HomeAssistant, server: Server, config_entry: MockConfigEntry
 ) -> None:
+    """Only a compact set is enabled by default; the rest exists but is disabled."""
     server()
     await _setup(hass, config_entry)
+    enabled = sorted(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(er.async_get(hass), config_entry.entry_id)
+        if e.disabled_by is None
+        and (
+            e.entity_id.startswith(
+                ("sensor.sam_", "sensor.vacation_", "binary_sensor.vacation_", "sensor.household_")
+            )
+        )
+    )
+    assert enabled == [
+        "sensor.household_kids_total",
+        "sensor.household_month_expenses",
+        "sensor.household_month_income",
+        "sensor.household_month_surplus",
+        "sensor.household_pots_total",
+        "sensor.household_year_surplus",
+        "sensor.sam_bank_difference",
+        "sensor.sam_last_entry",
+        "sensor.sam_own_money",
+        "sensor.sam_saved_by_us",
+        "sensor.sam_total",
+        "sensor.vacation_balance",
+        "sensor.vacation_progress",
+    ]
     registry = er.async_get(hass)
     for entity_id in (
-        "sensor.sam_opening_balance",
-        "sensor.sam_total_deposits",
-        "sensor.sam_own_money_net_this_month",
-        "sensor.vacation_total_carried_over",
-        "sensor.household_year_open_periods",
+        "sensor.sam_net_this_month",
+        "sensor.sam_bank_balance",
+        "sensor.vacation_target",
+        "binary_sensor.vacation_goal_reached",
+        "sensor.household_year_income",
     ):
         entry = registry.async_get(entity_id)
         assert entry is not None, entity_id
         assert entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
         assert hass.states.get(entity_id) is None
+    # The household device keeps its last-entry attributes on the date sensor.
+    last = hass.states.get("sensor.sam_last_entry").attributes
+    assert last["amount"] == 25.0
+
+
+@pytest.mark.compact_defaults
+async def test_migration_disables_previous_defaults(hass: HomeAssistant, server: Server) -> None:
+    """An entry from v0.2.0 (minor version 1) gets the compact set on upgrade."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="https://budget.app.example.com",
+        minor_version=1,
+        data={
+            "url": "https://budget.app.example.com",
+            "api_token": TOKEN,
+            CONF_SCOPES: ["kids:read"],
+        },
+    )
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    made = {}
+    for key, uid in {
+        "net": f"{entry.entry_id}_kid_sam-12_net_this_month",
+        "total": f"{entry.entry_id}_kid_sam-12_total",
+        "kids_ours": f"{entry.entry_id}_household_kids_ours",
+        "user_off": f"{entry.entry_id}_kid_sam-12_deposits_this_year",
+        "other": "unrelated_unique_id",
+    }.items():
+        made[key] = registry.async_get_or_create(
+            "sensor",
+            DOMAIN,
+            uid,
+            config_entry=entry,
+            disabled_by=er.RegistryEntryDisabler.USER if key == "user_off" else None,
+        ).entity_id
+
+    server(scopes=["kids:read"])
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.minor_version == 2
+    disabled = {k: registry.async_get(v).disabled_by for k, v in made.items()}
+    assert disabled == {
+        "net": er.RegistryEntryDisabler.INTEGRATION,
+        "total": None,
+        "kids_ours": er.RegistryEntryDisabler.INTEGRATION,
+        "user_off": er.RegistryEntryDisabler.USER,
+        "other": None,
+    }
+
+
+async def test_migration_refuses_newer_version(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, version=2, data={"url": "x", "api_token": TOKEN})
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.MIGRATION_ERROR
 
 
 async def test_unique_ids_scoped_by_kind(

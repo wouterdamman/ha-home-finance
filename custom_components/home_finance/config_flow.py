@@ -107,6 +107,7 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
     """Set up a home-finance server with a base URL and an integration token."""
 
     VERSION = 1
+    MINOR_VERSION = 2
 
     @staticmethod
     @callback

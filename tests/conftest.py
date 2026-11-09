@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import re
 from typing import Any
+from unittest.mock import PropertyMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -52,6 +53,23 @@ def error(code: str) -> dict[str, Any]:
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Load custom_components/ in every test."""
+
+
+@pytest.fixture(autouse=True)
+def all_entities_enabled(request: pytest.FixtureRequest):
+    """Enable every entity so value tests can read them all.
+
+    Tests marked ``compact_defaults`` see the real default set instead.
+    """
+    if request.node.get_closest_marker("compact_defaults"):
+        yield
+        return
+    with patch(
+        "homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
+        new_callable=PropertyMock,
+        return_value=True,
+    ):
+        yield
 
 
 type Server = Callable[..., dict[str, Any]]

@@ -11,11 +11,19 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_TOKEN, CONF_URL, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryError, ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr, issue_registry as ir
+from homeassistant.helpers import device_registry as dr, entity_registry as er, issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import HomeFinanceAuthError, HomeFinanceClient, HomeFinanceError
-from .const import CONF_SCOPES, DOMAIN, SCOPES, SUPPORTED_API_VERSION, Scope
+from .const import (
+    CONF_SCOPES,
+    DEFAULT_ENABLED,
+    DOMAIN,
+    ENABLED_BEFORE_MINOR_2,
+    SCOPES,
+    SUPPORTED_API_VERSION,
+    Scope,
+)
 from .coordinator import (
     COORDINATORS,
     HomeFinanceCoordinator,
@@ -87,6 +95,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: HomeFinanceConfigEntry) 
             )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: HomeFinanceConfigEntry) -> bool:
+    """Migrate config entries to the current version."""
+    if entry.version > 1:
+        return False  # A downgrade: newer data we do not understand.
+    if entry.minor_version < 2:
+        # v0.3.0 enables a compact set of entities by default. Disable the ones
+        # that were on by default before and are now off.
+        registry = er.async_get(hass)
+        for reg_entry in er.async_entries_for_config_entry(registry, entry.entry_id):
+            if reg_entry.disabled_by is None and _now_off_by_default(entry, reg_entry.unique_id):
+                registry.async_update_entity(
+                    reg_entry.entity_id, disabled_by=er.RegistryEntryDisabler.INTEGRATION
+                )
+        hass.config_entries.async_update_entry(entry, minor_version=2)
+    return True
+
+
+def _now_off_by_default(entry: ConfigEntry, unique_id: str) -> bool:
+    """Return whether an entity was on by default up to v0.2.0 but is off now.
+
+    Unique ids are ``<entry_id>_household_<key>`` or ``<entry_id>_<kid|pot>_<slug>_<key>``;
+    slugs never contain an underscore.
+    """
+    rest = unique_id.removeprefix(f"{entry.entry_id}_")
+    kind, _, rest = rest.partition("_")
+    if kind not in ("kid", "pot", "household"):
+        return False
+    key = rest if kind == "household" else rest.partition("_")[2]
+    return key in ENABLED_BEFORE_MINOR_2[kind] - DEFAULT_ENABLED[kind]
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: HomeFinanceConfigEntry) -> bool:
