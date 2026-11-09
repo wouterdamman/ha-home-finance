@@ -12,7 +12,7 @@
         "data_description": {
           "url": "Bijvoorbeeld {example_url}. Een geplakte /api/integrations/v1 wordt verwijderd.",
           "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken.",
-          "household_name": "Naam van het apparaat met de totalen. De entiteiten worden ernaar vernoemd, bijvoorbeeld sensor.huishouden_kids_total."
+          "household_name": "Naam van het apparaat met de totalen. De entiteiten worden ernaar vernoemd, bijvoorbeeld sensor.huishouden_kinderen_totaal."
         }
       },
       "reauth_confirm": {
@@ -36,7 +36,7 @@
         "data_description": {
           "url": "Bijvoorbeeld {example_url}. Een geplakte /api/integrations/v1 wordt verwijderd.",
           "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken.",
-          "household_name": "Naam van het apparaat met de totalen. De entiteiten worden ernaar vernoemd, bijvoorbeeld sensor.huishouden_kids_total."
+          "household_name": "Naam van het apparaat met de totalen. De entiteiten worden ernaar vernoemd, bijvoorbeeld sensor.huishouden_kinderen_totaal."
         }
       }
     },

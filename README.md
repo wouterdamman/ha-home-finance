@@ -30,7 +30,7 @@ supports so far.)
    - the token (see below). It is a password field and is stored as a secret;
    - the name of the **Household** device that holds the totals. The suggestion is `Huishouden`
      on a Dutch-language Home Assistant and `Household` otherwise. The household entity IDs are
-     derived from it, for example `sensor.huishouden_kids_total`.
+     derived from it, for example `sensor.huishouden_kinderen_totaal`.
 
 ## Creating a token
 
@@ -66,66 +66,98 @@ If a token expires or is revoked anyway, the server answers `401` and Home Assis
 
 ## Entities
 
-Entity IDs below are what Home Assistant generates from device name + entity name, with the
-Household device named `Household`. With another name, for example `Huishouden`, the household
-entities become `sensor.huishouden_*`. Entity names are shown in Dutch on a Dutch install, but the
-entity IDs are always generated from the English names. Kid and pot device names come from home-finance, for example `Sam` or `New car`.
-Money sensors are in EUR with 2 decimals; amounts come from the API as integer cents.
+Home Assistant builds an entity ID from the device name and the entity name, in the language of
+your installation. On a Dutch install the names, and therefore the entity IDs, are Dutch: a kid
+named `Sam` gets `sensor.sam_totaal`, and with the Household device named `Huishouden` the kids
+total is `sensor.huishouden_kinderen_totaal`. On an English install these are `sensor.sam_total`
+and `sensor.household_kids_total`. `<device>` below is the kid's or pot's name from home-finance
+(`sam`, `new_car`) or the Household device name you chose. Entity IDs are fixed once created;
+renaming entities in Home Assistant is up to you.
 
-Sensors marked *disabled* exist but are disabled by default. Enable them under the device if you
-need them.
+Money sensors are in EUR with 2 decimals; amounts come from the API as integer cents. Entities
+marked disabled exist but are disabled by default; enable them under the device if you need
+them.
 
 ### `kids:read`: one device per kid
 
-| Entity | Value |
-|---|---|
-| `sensor.<kid>_total` | Whole balance (state class `total`) |
-| `sensor.<kid>_saved_by_us` | "Door ons gespaard" sub-pot (`total`) |
-| `sensor.<kid>_own_money` | "Eigen geld" sub-pot (`total`) |
-| `sensor.<kid>_net_this_month` / `_net_this_year` | Net movement this calendar month/year (Europe/Amsterdam) |
-| `sensor.<kid>_deposited_this_month` / `_deposited_this_year` | Deposits this month/year |
-| `sensor.<kid>_bank_balance` | Balance last reported by the bank (`total`); unknown if none recorded. Attribute `reported_balance_date` |
-| `sensor.<kid>_bank_difference` | Ledger minus bank; unknown if no bank balance is recorded. Attribute `reported_balance_date` |
-| `sensor.<kid>_last_entry` | Date of the latest entry; attributes `type`, `owner`, `amount` (EUR, signed) |
-| `sensor.<kid>_last_entry_amount` | Signed amount of the latest entry |
-| *disabled* | `_opening_balance`, `_total_deposits`, `_total_withdrawals`, `_total_adjustments`, `_withdrawn_this_month`, `_withdrawn_this_year`, `_saved_by_us_net_this_month/year`, `_own_money_net_this_month/year` |
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_total` | `sensor.<device>_totaal` | Whole balance (`total`) |
+| `sensor.<device>_saved_by_us` | `sensor.<device>_door_ons_gespaard` | "Door ons gespaard" sub-pot (`total`) |
+| `sensor.<device>_own_money` | `sensor.<device>_eigen_geld` | "Eigen geld" sub-pot (`total`) |
+| `sensor.<device>_net_this_month` | `sensor.<device>_netto_deze_maand` | Net movement this calendar month (Europe/Amsterdam) |
+| `sensor.<device>_net_this_year` | `sensor.<device>_netto_dit_jaar` | Net movement this calendar year |
+| `sensor.<device>_deposited_this_month` | `sensor.<device>_gestort_deze_maand` | Deposits this month |
+| `sensor.<device>_deposited_this_year` | `sensor.<device>_gestort_dit_jaar` | Deposits this year |
+| `sensor.<device>_bank_balance` | `sensor.<device>_banksaldo` | Balance last reported by the bank (`total`); unknown if none recorded. Attribute `reported_balance_date` |
+| `sensor.<device>_bank_difference` | `sensor.<device>_verschil_met_bank` | Ledger minus bank; unknown if no bank balance is recorded. Attribute `reported_balance_date` |
+| `sensor.<device>_last_entry` | `sensor.<device>_laatste_boeking` | Date of the latest entry; attributes `type`, `amount` (EUR, signed) and for kids `owner` |
+| `sensor.<device>_last_entry_amount` | `sensor.<device>_bedrag_laatste_boeking` | Signed amount of the latest entry |
 
-Household device: `sensor.household_kids_total`, `sensor.household_kids_saved_by_us`,
-`sensor.household_kids_own_money` (all `total`).
+Disabled by default: `_opening_balance` / `_beginsaldo`, `_total_deposits` / `_totaal_gestort`, `_total_withdrawals` / `_totaal_opgenomen`, `_total_adjustments` / `_totaal_correcties`, `_withdrawn_this_month` / `_opgenomen_deze_maand`, `_withdrawn_this_year` / `_opgenomen_dit_jaar`, `_saved_by_us_net_this_month` / `_door_ons_gespaard_netto_deze_maand`, `_saved_by_us_net_this_year` / `_door_ons_gespaard_netto_dit_jaar`, `_own_money_net_this_month` / `_eigen_geld_netto_deze_maand`, `_own_money_net_this_year` / `_eigen_geld_netto_dit_jaar`.
+
+On the Household device:
+
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_kids_total` | `sensor.<device>_kinderen_totaal` | All kids together (`total`) |
+| `sensor.<device>_kids_saved_by_us` | `sensor.<device>_kinderen_door_ons_gespaard` | All kids, saved by us (`total`) |
+| `sensor.<device>_kids_own_money` | `sensor.<device>_kinderen_eigen_geld` | All kids, own money (`total`) |
 
 ### `pots:read`: one device per savings pot
 
-| Entity | Value |
-|---|---|
-| `sensor.<pot>_balance` | Balance (`total`) |
-| `sensor.<pot>_target` | Savings goal; unknown without a goal |
-| `sensor.<pot>_progress` | Progress towards the goal in %, not capped at 100 |
-| `sensor.<pot>_remaining` | Still to save |
-| `sensor.<pot>_needed_per_month` | Needed per month to reach the goal by its date; unknown without a date |
-| `sensor.<pot>_months_left` | Months until the goal date |
-| `sensor.<pot>_target_date` | Goal date |
-| `sensor.<pot>_allocated_this_month` | Surplus share allocated this month (usually 0 until the month is closed) |
-| `sensor.<pot>_net_this_month` / `_net_this_year` | Net movement this month/year |
-| `sensor.<pot>_split` | Share of the monthly surplus in %; attributes `period_year`, `period_month`, `period_status` |
-| `sensor.<pot>_last_entry` | Date of the latest entry; attributes `type`, `amount` |
-| `binary_sensor.<pot>_goal_reached` | On when the balance has reached the goal |
-| *disabled* | `_opening_balance`, `_total_allocations`, `_total_deposits`, `_total_withdrawals`, `_total_carried_over`, `_total_adjustments`, `_allocated_this_year`, `_deposited_this_month`, `_withdrawn_this_month` |
+Goal entities only exist for a pot that has a goal, and the date-based ones only when the goal
+has a date. They appear when you set a goal in home-finance and disappear when you remove it, so
+a pot without a goal has no sensors stuck on `unknown`. The same holds for the split.
 
-Household device: `sensor.household_pots_total` (`total`), `sensor.household_pots_target_total`.
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_balance` | `sensor.<device>_saldo` | Balance (`total`) |
+| `sensor.<device>_target` | `sensor.<device>_spaardoel` | Savings goal; only for a pot with a goal |
+| `sensor.<device>_progress` | `sensor.<device>_voortgang` | Progress towards the goal in %, not capped at 100; only for a pot with a goal |
+| `sensor.<device>_remaining` | `sensor.<device>_nog_te_sparen` | Still to save; only for a pot with a goal |
+| `sensor.<device>_needed_per_month` | `sensor.<device>_nodig_per_maand` | Needed per month to reach the goal by its date; only for a goal with a date |
+| `sensor.<device>_months_left` | `sensor.<device>_maanden_te_gaan` | Months until the goal date; only for a goal with a date |
+| `sensor.<device>_target_date` | `sensor.<device>_doeldatum` | Goal date; only for a goal with a date |
+| `sensor.<device>_allocated_this_month` | `sensor.<device>_toegewezen_deze_maand` | Surplus share allocated this month (usually 0 until the month is closed) |
+| `sensor.<device>_net_this_month` | `sensor.<device>_netto_deze_maand` | Net movement this calendar month (Europe/Amsterdam) |
+| `sensor.<device>_net_this_year` | `sensor.<device>_netto_dit_jaar` | Net movement this calendar year |
+| `sensor.<device>_split` | `sensor.<device>_verdeling` | Share of the monthly surplus in %; attributes `period_year`, `period_month`, `period_status`; only for a pot with a split |
+| `sensor.<device>_last_entry` | `sensor.<device>_laatste_boeking` | Date of the latest entry; attributes `type`, `amount` (EUR, signed) and for kids `owner` |
+| `binary_sensor.<device>_goal_reached` | `binary_sensor.<device>_spaardoel_bereikt` | On when the balance has reached the goal; only for a pot with a goal |
 
-### `periods:read`: household device
+Disabled by default: `_opening_balance` / `_beginsaldo`, `_total_allocations` / `_totaal_toegewezen`, `_total_deposits` / `_totaal_gestort`, `_total_withdrawals` / `_totaal_opgenomen`, `_total_carried_over` / `_totaal_doorgeschoven`, `_total_adjustments` / `_totaal_correcties`, `_allocated_this_year` / `_toegewezen_dit_jaar`, `_deposited_this_month` / `_gestort_deze_maand`, `_withdrawn_this_month` / `_opgenomen_deze_maand`.
 
-`sensor.household_month_income`, `sensor.household_month_expenses`,
-`sensor.household_month_surplus` (can be negative) and `sensor.household_month_status`
-(`open`/`closed`). All four carry the attributes `year`, `month`, `is_current_month` and
-`closed_at`. When the current month has no period yet, home-finance falls back to an earlier
-one and `is_current_month` is `false`. Before any period exists these sensors are unavailable.
+On the Household device:
 
-### `years:read`: household device
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_pots_total` | `sensor.<device>_potjes_totaal` | All pots together (`total`) |
+| `sensor.<device>_pots_target_total` | `sensor.<device>_potjes_spaardoel_totaal` | Sum of the goals of pots that have one |
 
-`sensor.household_year_income`, `sensor.household_year_expenses`,
-`sensor.household_year_surplus`, `sensor.household_year_average_monthly_surplus`
-(year-to-date, open months included); *disabled*: `_year_open_periods`, `_year_closed_periods`.
+### `periods:read`: Household device
+
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_month_income` | `sensor.<device>_inkomsten_deze_maand` | Income this month |
+| `sensor.<device>_month_expenses` | `sensor.<device>_uitgaven_deze_maand` | Expenses this month |
+| `sensor.<device>_month_surplus` | `sensor.<device>_overschot_deze_maand` | Surplus this month (can be negative) |
+| `sensor.<device>_month_status` | `sensor.<device>_status_maand` | `open` or `closed` |
+
+All four carry the attributes `year`, `month`, `is_current_month` and `closed_at`. When the
+current month has no period yet, home-finance falls back to an earlier one and
+`is_current_month` is `false`. Before any period exists these sensors are unavailable.
+
+### `years:read`: Household device
+
+| English install | Dutch install | Value |
+|---|---|---|
+| `sensor.<device>_year_income` | `sensor.<device>_inkomsten_dit_jaar` | Income this year (year-to-date) |
+| `sensor.<device>_year_expenses` | `sensor.<device>_uitgaven_dit_jaar` | Expenses this year |
+| `sensor.<device>_year_surplus` | `sensor.<device>_overschot_dit_jaar` | Surplus this year |
+| `sensor.<device>_year_average_monthly_surplus` | `sensor.<device>_gemiddeld_overschot_per_maand_dit_jaar` | Surplus divided by the number of periods so far |
+
+Disabled by default: `_year_open_periods` / `_open_maanden_dit_jaar`, `_year_closed_periods` / `_afgesloten_maanden_dit_jaar`.
 
 ### Why most month and year figures have no state class
 
@@ -135,6 +167,9 @@ misleading long-term statistics. They therefore have no state class: they still 
 but no long-term statistics.
 
 ## Example Lovelace cards
+
+Entity IDs as on an English install; on a Dutch install use the Dutch IDs from the tables above
+(`sensor.huishouden_kinderen_totaal`, `sensor.sam_totaal`, `sensor.vacation_voortgang`, …).
 
 ```yaml
 type: grid
