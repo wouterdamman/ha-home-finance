@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/wouterdamman/ha-home-finance/compare/v0.2.0...v0.3.0) (2026-11-09)
+
+
+### Features
+
+* choose which data to fetch during setup and in the options ([86ef745](https://github.com/wouterdamman/ha-home-finance/commit/86ef74591d519a7838c5927d406cbef6a20414a5))
+* enable a compact entity set by default ([0142111](https://github.com/wouterdamman/ha-home-finance/commit/01421118bc3568d59749d02bb47a2e82a1800c41))
+
 ## [0.2.0](https://github.com/wouterdamman/ha-home-finance/compare/v0.1.0...v0.2.0) (2026-11-09)
 
 
