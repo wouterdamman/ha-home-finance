@@ -140,26 +140,41 @@ class HomeFinanceEntity(CoordinatorEntity[HomeFinanceCoordinator[Any]]):
         return super().available and self.item is not None
 
 
+def has_target(item: JSON) -> bool:
+    """Return whether the pot has a savings goal."""
+    return isinstance(item.get("target"), dict)
+
+
+def has_target_date(item: JSON) -> bool:
+    """Return whether the pot's savings goal has a date."""
+    return isinstance(dig(item, "target", "targetDate"), str)
+
+
+def has_split(item: JSON) -> bool:
+    """Return whether the pot ever had a share of the monthly surplus."""
+    return isinstance(item.get("split"), dict)
+
+
+def _exists(description: EntityDescription, item: JSON) -> bool:
+    exists_fn: Callable[[JSON], bool] | None = getattr(description, "exists_fn", None)
+    return exists_fn is None or exists_fn(item)
+
+
 @callback
-def _remove_entities(
-    hass: HomeAssistant,
-    entry: HomeFinanceConfigEntry,
-    kind: str,
-    descs: tuple[EntityDescription, ...],
+def _remove_entity(
+    hass: HomeAssistant, platform: str, entry: HomeFinanceConfigEntry, ident: str, key: str
 ) -> None:
-    """Remove household entities of a scope the token no longer has (or the server lacks)."""
     registry = er.async_get(hass)
-    for desc in descs:
-        unique_id = f"{device_identifier(entry, kind)}_{desc.key}"
-        for domain in ("sensor", "binary_sensor"):
-            if entity_id := registry.async_get_entity_id(domain, DOMAIN, unique_id):
-                registry.async_remove(entity_id)
+    if entity_id := registry.async_get_entity_id(platform, DOMAIN, f"{ident}_{key}"):
+        registry.async_remove(entity_id)
 
 
 def async_setup_entities(
     hass: HomeAssistant,
     entry: HomeFinanceConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
+    *,
+    platform: str,
     entity_cls: type[HomeFinanceEntity],
     descriptions: dict[tuple[Scope, str], tuple[EntityDescription, ...]],
 ) -> None:
@@ -167,37 +182,47 @@ def async_setup_entities(
 
     ``descriptions`` maps ``(scope, kind)`` to the descriptions for that device
     kind. New kids and pots get entities on the next refresh without a reload;
-    devices that disappear are removed by ``async_remove_stale_devices``.
+    devices that disappear are removed by ``async_remove_stale_devices``. A
+    description with an ``exists_fn`` (for example a pot's savings goal) only
+    gets an entity while that part of the object exists, so a pot without a goal
+    has no goal sensors stuck on unknown.
     """
     for (scope, kind), descs in descriptions.items():
         coordinator = entry.runtime_data.coordinators.get(scope)
         if coordinator is None:
             if kind == KIND_HOUSEHOLD:
-                _remove_entities(hass, entry, KIND_HOUSEHOLD, descs)
+                # Scope unavailable at setup: drop its household entities.
+                for d in descs:
+                    _remove_entity(hass, platform, entry, device_identifier(entry, kind), d.key)
             continue
         if kind == KIND_HOUSEHOLD:
             async_add_entities(entity_cls(coordinator, entry, d, kind) for d in descs)
             continue
 
-        known: set[str] = set()
+        known: set[tuple[str, str]] = set()
 
         @callback
-        def add_new(
+        def sync(
             coordinator: HomeFinanceCoordinator[Any] = coordinator,
             kind: str = kind,
             descs: tuple[EntityDescription, ...] = descs,
-            known: set[str] = known,
+            known: set[tuple[str, str]] = known,
         ) -> None:
             data = coordinator.data
-            if not isinstance(data, ListData):
+            if not isinstance(data, ListData) or not coordinator.last_update_success:
                 return
-            current = set(data.items)
-            known.intersection_update(current)  # a returning slug is added again
-            new = [slug for slug in data.items if slug not in known]
-            known.update(new)
-            async_add_entities(
-                entity_cls(coordinator, entry, d, kind, slug) for slug in new for d in descs
-            )
+            wanted = [
+                (slug, d) for slug, item in data.items.items() for d in descs if _exists(d, item)
+            ]
+            current = {(slug, d.key) for slug, d in wanted}
+            for slug, key in known - current:
+                # Gone with its kid/pot (device removal covers it) or, for an
+                # existing pot, its goal or split was removed in the app.
+                _remove_entity(hass, platform, entry, device_identifier(entry, kind, slug), key)
+            new = [(slug, d) for slug, d in wanted if (slug, d.key) not in known]
+            known.clear()
+            known.update(current)
+            async_add_entities(entity_cls(coordinator, entry, d, kind, slug) for slug, d in new)
 
-        add_new()
-        entry.async_on_unload(coordinator.async_add_listener(add_new))
+        sync()
+        entry.async_on_unload(coordinator.async_add_listener(sync))
