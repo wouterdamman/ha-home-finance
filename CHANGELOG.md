@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/wouterdamman/ha-home-finance/compare/v0.1.0...v0.2.0) (2026-11-09)
+
+
+### Features
+
+* create pot goal and split entities only when the pot has them ([25eacd4](https://github.com/wouterdamman/ha-home-finance/commit/25eacd4e66c20007cbfe8ba27e9abc515095b292))
+
+
+### Bug Fixes
+
+* document Dutch entity IDs ([3dbcd89](https://github.com/wouterdamman/ha-home-finance/commit/3dbcd8917db6edd165575222f7fd740defc7f389))
+
 ## 0.1.0 (2026-11-09)
 
 
