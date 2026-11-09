@@ -36,10 +36,29 @@ async def _user(
     )
 
 
+async def _scopes(
+    hass: HomeAssistant, result: dict[str, Any], chosen: list[str] | None = None
+) -> dict[str, Any]:
+    """Finish the scopes step, by default with every offered scope ticked."""
+    assert result["type"] is FlowResultType.FORM, result
+    assert result["step_id"] == "scopes"
+    if chosen is None:
+        key = next(k for k in result["data_schema"].schema if k == "enabled_scopes")
+        chosen = key.default()
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"enabled_scopes": chosen}
+    )
+
+
 async def test_user_success(hass: HomeAssistant, server: Server) -> None:
     server(scopes=["kids:read", "years:read", "future:read"])
     result = await _user(hass, url=BASE_URL + "/api/integrations/v1/", token=f" {TOKEN} ")
+    # Only the token's known scopes are offered, all ticked by default.
+    key = next(k for k in result["data_schema"].schema if k == "enabled_scopes")
+    assert key.default() == ["kids", "years"]
+    result = await _scopes(hass, result, ["years"])
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"] == {"enabled_scopes": ["years:read"]}
     assert result["title"] == "Home Assistant"
     assert result["data"] == {
         "url": BASE_URL,
@@ -64,6 +83,7 @@ async def test_user_suggests_dutch_household_name(hass: HomeAssistant, server: S
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"url": BASE_URL, "api_token": TOKEN, "household_name": "  "}
     )
+    result = await _scopes(hass, result)
     assert result["data"]["household_name"] == "Household"
 
 
@@ -71,7 +91,7 @@ async def test_user_title_falls_back_to_host(hass: HomeAssistant, server: Server
     info = load("info")
     del info["tokenName"]
     server({"/info": info})
-    result = await _user(hass)
+    result = await _scopes(hass, await _user(hass))
     assert result["title"] == "budget.app.example.com"
 
 
@@ -107,7 +127,16 @@ async def test_user_errors_then_recover(
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"url": BASE_URL, "api_token": TOKEN, "household_name": "Household"}
     )
+    result = await _scopes(hass, result)
     assert result["type"] is FlowResultType.CREATE_ENTRY
+
+
+async def test_scopes_step_needs_one(hass: HomeAssistant, server: Server) -> None:
+    server()
+    result = await _scopes(hass, await _user(hass), [])
+    assert result["errors"] == {"base": "no_scope_selected"}
+    result = await _scopes(hass, result, ["kids", "pots"])
+    assert result["options"] == {"enabled_scopes": ["kids:read", "pots:read"]}
 
 
 async def test_user_duplicate(
@@ -205,10 +234,23 @@ async def test_options_flow(hass: HomeAssistant, config_entry: MockConfigEntry) 
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
     assert result["type"] is FlowResultType.FORM
     schema = result["data_schema"].schema
-    default = next(k for k in schema if k == "scan_interval").default()
-    assert default == 15
+    assert next(k for k in schema if k == "scan_interval").default() == 15
+    # An entry without the option fetches every scope of the token.
+    assert next(k for k in schema if k == "enabled_scopes").default() == [
+        "kids",
+        "pots",
+        "periods",
+        "years",
+    ]
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {"scan_interval": 30.0}
+        result["flow_id"], {"scan_interval": 30.0, "enabled_scopes": []}
+    )
+    assert result["errors"] == {"base": "no_scope_selected"}
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"scan_interval": 30.0, "enabled_scopes": ["kids", "years"]}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert config_entry.options == {"scan_interval": 30}
+    assert config_entry.options == {
+        "enabled_scopes": ["kids:read", "years:read"],
+        "scan_interval": 30,
+    }

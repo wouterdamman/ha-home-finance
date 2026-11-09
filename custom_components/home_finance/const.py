@@ -11,6 +11,8 @@ MANUFACTURER: Final = "home-finance"
 
 CONF_SCOPES: Final = "scopes"
 CONF_HOUSEHOLD_NAME: Final = "household_name"
+# Option: which of the token's scopes to fetch. Missing means all of them.
+CONF_ENABLED_SCOPES: Final = "enabled_scopes"
 
 # Suggested name of the Household device; it also seeds its entity IDs.
 DEFAULT_HOUSEHOLD_NAME: Final = "Household"

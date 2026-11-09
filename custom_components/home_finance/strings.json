@@ -38,6 +38,16 @@
           "api_token": "The hf_... token, shown once when it was created.",
           "household_name": "Name of the device that holds the totals. Its entities are named after it, for example sensor.household_kids_total."
         }
+      },
+      "scopes": {
+        "title": "Data to fetch",
+        "description": "Choose which data Home Assistant fetches. Only the scopes this token holds are listed. Data you leave out is not requested and gets no devices or entities. You can change this later under Configure.",
+        "data": {
+          "enabled_scopes": "Fetch"
+        },
+        "data_description": {
+          "enabled_scopes": "Kids: a device per kid. Savings pots: a device per pot. Month and year figures: totals on the Household device."
+        }
       }
     },
     "error": {
@@ -46,7 +56,8 @@
       "no_scopes": "The token has none of the scopes kids:read, pots:read, periods:read or years:read.",
       "unsupported_api": "The server speaks an unsupported Integration API version.",
       "invalid_url": "Enter an address that starts with http or https.",
-      "unknown": "Unexpected error."
+      "unknown": "Unexpected error.",
+      "no_scope_selected": "Choose at least one."
     },
     "abort": {
       "already_configured": "This server is already configured.",
@@ -59,11 +70,26 @@
       "init": {
         "title": "Options",
         "data": {
+          "enabled_scopes": "Fetch",
           "scan_interval": "Update interval (minutes)"
         },
         "data_description": {
+          "enabled_scopes": "Kids: a device per kid. Savings pots: a device per pot. Month and year figures: totals on the Household device.",
           "scan_interval": "Data changes a few times a month; 15 minutes is plenty. Minimum 5."
         }
+      }
+    },
+    "error": {
+      "no_scope_selected": "Choose at least one."
+    }
+  },
+  "selector": {
+    "scopes": {
+      "options": {
+        "kids": "Kids",
+        "pots": "Savings pots",
+        "periods": "Month figures",
+        "years": "Year figures"
       }
     }
   },
