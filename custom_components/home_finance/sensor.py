@@ -14,7 +14,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import PERCENTAGE, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -32,6 +32,9 @@ from .entity import (
     day,
     dig,
     euros,
+    has_split,
+    has_target,
+    has_target_date,
     number,
 )
 
@@ -48,6 +51,8 @@ class HomeFinanceSensorEntityDescription(SensorEntityDescription):
 
     value_fn: Callable[[JSON], StateType | date | Decimal]
     attrs_fn: Callable[[JSON], dict[str, Any]] | None = None
+    # When set, the entity only exists while this returns True for the object.
+    exists_fn: Callable[[JSON], bool] | None = None
 
 
 def _money(
@@ -57,6 +62,7 @@ def _money(
     balance: bool = False,
     enabled: bool = True,
     attrs_fn: Callable[[JSON], dict[str, Any]] | None = None,
+    exists_fn: Callable[[JSON], bool] | None = None,
 ) -> HomeFinanceSensorEntityDescription:
     """Describe a EUR sensor. Only real balances get ``state_class: total``.
 
@@ -73,6 +79,7 @@ def _money(
         entity_registry_enabled_default=enabled,
         value_fn=value_fn,
         attrs_fn=attrs_fn,
+        exists_fn=exists_fn,
     )
 
 
@@ -175,7 +182,7 @@ KID_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
 
 POT_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
     _money("balance", cents("balanceCents"), balance=True),
-    _money("target", cents("target", "targetCents")),
+    _money("target", cents("target", "targetCents"), exists_fn=has_target),
     HomeFinanceSensorEntityDescription(
         key="progress",
         translation_key="progress",
@@ -183,19 +190,26 @@ POT_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
         value_fn=number("target", "progressPercent"),
+        exists_fn=has_target,
     ),
-    _money("remaining", cents("target", "remainingCents")),
-    _money("needed_per_month", cents("target", "neededPerMonthCents")),
+    _money("remaining", cents("target", "remainingCents"), exists_fn=has_target),
+    _money(
+        "needed_per_month",
+        cents("target", "neededPerMonthCents"),
+        exists_fn=has_target_date,
+    ),
     HomeFinanceSensorEntityDescription(
         key="months_left",
         translation_key="months_left",
         value_fn=number("target", "monthsLeft"),
+        exists_fn=has_target_date,
     ),
     HomeFinanceSensorEntityDescription(
         key="target_date",
         translation_key="target_date",
         device_class=SensorDeviceClass.DATE,
         value_fn=day("target", "targetDate"),
+        exists_fn=has_target_date,
     ),
     _money("allocated_this_month", cents("flows", "thisMonth", "allocationsCents")),
     _money("net_this_month", cents("flows", "thisMonth", "netCents")),
@@ -206,6 +220,7 @@ POT_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         value_fn=number("split", "percentage"),
         attrs_fn=_split_attrs,
+        exists_fn=has_split,
     ),
     HomeFinanceSensorEntityDescription(
         key="last_entry",
@@ -293,7 +308,14 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up home-finance sensors."""
-    async_setup_entities(hass, entry, async_add_entities, HomeFinanceSensor, SENSORS)
+    async_setup_entities(
+        hass,
+        entry,
+        async_add_entities,
+        platform=Platform.SENSOR,
+        entity_cls=HomeFinanceSensor,
+        descriptions=SENSORS,
+    )
 
 
 class HomeFinanceSensor(HomeFinanceEntity, SensorEntity):

@@ -6,13 +6,14 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorEntityDescription
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import HomeFinanceConfigEntry
 from .api import JSON
 from .const import Scope
-from .entity import KIND_POT, HomeFinanceEntity, async_setup_entities, dig
+from .entity import KIND_POT, HomeFinanceEntity, async_setup_entities, dig, has_target
 
 PARALLEL_UPDATES = 0
 
@@ -22,6 +23,7 @@ class HomeFinanceBinarySensorEntityDescription(BinarySensorEntityDescription):
     """A binary sensor description that knows how to read its value."""
 
     value_fn: Callable[[JSON], bool | None]
+    exists_fn: Callable[[JSON], bool] | None = None
 
 
 def _reached(item: JSON) -> bool | None:
@@ -31,7 +33,10 @@ def _reached(item: JSON) -> bool | None:
 
 POT_BINARY_SENSORS: tuple[HomeFinanceBinarySensorEntityDescription, ...] = (
     HomeFinanceBinarySensorEntityDescription(
-        key="goal_reached", translation_key="goal_reached", value_fn=_reached
+        key="goal_reached",
+        translation_key="goal_reached",
+        value_fn=_reached,
+        exists_fn=has_target,
     ),
 )
 
@@ -46,8 +51,9 @@ async def async_setup_entry(
         hass,
         entry,
         async_add_entities,
-        HomeFinanceBinarySensor,
-        {(Scope.POTS, KIND_POT): POT_BINARY_SENSORS},
+        platform=Platform.BINARY_SENSOR,
+        entity_cls=HomeFinanceBinarySensor,
+        descriptions={(Scope.POTS, KIND_POT): POT_BINARY_SENSORS},
     )
 
 

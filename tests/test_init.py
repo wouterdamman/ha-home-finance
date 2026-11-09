@@ -110,12 +110,21 @@ async def test_full_setup(
     assert hass.states.get("sensor.vacation_split").attributes["period_status"] == "open"
     assert _state(hass, "sensor.vacation_last_entry") == "2026-11-02"
     assert _state(hass, "binary_sensor.vacation_goal_reached") == "off"
-    assert _state(hass, "sensor.new_car_needed_per_month") == STATE_UNKNOWN
-    assert _state(hass, "sensor.new_car_target_date") == STATE_UNKNOWN
-    assert _state(hass, "sensor.buffer_target") == STATE_UNKNOWN
-    assert _state(hass, "sensor.buffer_progress") == STATE_UNKNOWN
-    assert _state(hass, "sensor.buffer_split") == STATE_UNKNOWN
-    assert _state(hass, "binary_sensor.buffer_goal_reached") == STATE_UNKNOWN
+    # A goal without a date: goal sensors, but no date-based ones.
+    assert _state(hass, "sensor.new_car_progress") == "30"
+    assert hass.states.get("sensor.new_car_needed_per_month") is None
+    assert hass.states.get("sensor.new_car_months_left") is None
+    assert hass.states.get("sensor.new_car_target_date") is None
+    # No goal and never a split: no goal or split entities at all.
+    assert _state(hass, "sensor.buffer_balance") == "2500"
+    for missing in (
+        "sensor.buffer_target",
+        "sensor.buffer_progress",
+        "sensor.buffer_remaining",
+        "sensor.buffer_split",
+        "binary_sensor.buffer_goal_reached",
+    ):
+        assert hass.states.get(missing) is None, missing
     assert _state(hass, "sensor.carryover_last_entry") == "2026-11-03"
     assert hass.states.get("sensor.carryover_last_entry").attributes["amount"] == -450.0
 
@@ -153,6 +162,30 @@ async def test_custom_household_name(hass: HomeAssistant, server: Server) -> Non
     await _setup(hass, entry)
     assert "Huishouden" in _devices(hass, entry)
     assert _state(hass, "sensor.huishouden_kids_total") == "1813"
+
+
+async def test_dutch_entity_ids(hass: HomeAssistant, server: Server) -> None:
+    """A Dutch install gets Dutch entity IDs (seen live on a real install)."""
+    hass.config.language = "nl"
+    server()
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="https://budget.app.example.com",
+        data={
+            "url": "https://budget.app.example.com",
+            "api_token": TOKEN,
+            CONF_SCOPES: ["kids:read", "pots:read"],
+            "household_name": "Huishouden",
+        },
+    )
+    server(scopes=["kids:read", "pots:read"])
+    await _setup(hass, entry)
+    assert _state(hass, "sensor.sam_totaal") == "1040"
+    assert _state(hass, "sensor.sam_eigen_geld") == "165"
+    assert _state(hass, "sensor.huishouden_kinderen_totaal") == "1813"
+    assert _state(hass, "sensor.vacation_voortgang") == "65"
+    assert _state(hass, "binary_sensor.vacation_spaardoel_bereikt") == "off"
+    assert hass.states.get("sensor.sam_total") is None
 
 
 async def test_flow_breakdowns_disabled_by_default(
@@ -271,6 +304,34 @@ async def test_kid_and_pot_added_and_removed(
     await _refresh(hass)
     assert _state(hass, "sensor.mila_total") == "253"
     assert "Zoë" not in _devices(hass, config_entry)
+
+
+async def test_goal_added_and_removed(
+    hass: HomeAssistant, server: Server, config_entry: MockConfigEntry
+) -> None:
+    """Goal entities follow the pot's goal without a reload."""
+    server()
+    await _setup(hass, config_entry)
+    assert hass.states.get("sensor.buffer_progress") is None
+
+    buffer = load("pot_buffer") | {"target": load("pot_vacation")["target"]}
+    vacation = load("pot_vacation") | {"target": None}
+    server({"/pots/buffer": buffer, "/pots/vacation": vacation})
+    await _refresh(hass)
+    assert _state(hass, "sensor.buffer_progress") == "65"
+    assert _state(hass, "sensor.buffer_target_date") == "2027-06-01"
+    assert _state(hass, "binary_sensor.buffer_goal_reached") == "off"
+    registry = er.async_get(hass)
+    assert registry.async_get("sensor.vacation_progress") is None
+    assert registry.async_get("binary_sensor.vacation_goal_reached") is None
+    assert _state(hass, "sensor.vacation_balance") == "1950"
+    assert "Vacation" in _devices(hass, config_entry)
+
+    # The goal comes back: same entity_id again.
+    server()
+    await _refresh(hass)
+    assert _state(hass, "sensor.vacation_progress") == "65"
+    assert hass.states.get("sensor.buffer_progress") is None
 
 
 async def test_slug_change_creates_new_device(
