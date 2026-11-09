@@ -16,6 +16,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import HomeFinanceAuthError, HomeFinanceClient, HomeFinanceError
 from .const import (
+    CONF_ENABLED_SCOPES,
     CONF_SCOPES,
     DEFAULT_ENABLED,
     DOMAIN,
@@ -65,8 +66,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: HomeFinanceConfigEntry) 
     token_scopes = info.get("scopes") or []
     held = [scope for scope in SCOPES if scope in token_scopes]
     _sync_scope_issues(hass, entry, held)
+    # Only fetch the scopes chosen in the setup/options flow (all when not set).
+    enabled = entry.options.get(CONF_ENABLED_SCOPES) or held
 
-    candidates = [COORDINATORS[scope](hass, entry, client) for scope in held]
+    candidates = [COORDINATORS[scope](hass, entry, client) for scope in held if scope in enabled]
     results = await asyncio.gather(
         *(c.async_config_entry_first_refresh() for c in candidates),
         return_exceptions=True,

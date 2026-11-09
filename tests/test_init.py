@@ -691,6 +691,37 @@ async def test_scope_dropped_from_token_at_setup(
     assert registry.async_get("sensor.household_kids_total") is not None
 
 
+async def test_only_enabled_scopes_are_fetched(
+    hass: HomeAssistant, server: Server, config_entry: MockConfigEntry, aioclient_mock
+) -> None:
+    """Scopes left out in the options are not requested and get no entities."""
+    server()
+    await _setup(hass, config_entry)
+    assert "Vacation" in _devices(hass, config_entry)
+
+    hass.config_entries.async_update_entry(
+        config_entry, options={"enabled_scopes": ["kids:read", "years:read"]}
+    )
+    await hass.config_entries.async_reload(config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert config_entry.state is ConfigEntryState.LOADED
+    assert _state(hass, "sensor.sam_total") == "1040"
+    assert _state(hass, "sensor.household_year_surplus") == "6212.5"
+    assert "Vacation" not in _devices(hass, config_entry)
+    registry = er.async_get(hass)
+    assert registry.async_get("sensor.household_pots_total") is None
+    assert registry.async_get("sensor.household_month_income") is None
+    assert not _issues(hass)
+
+    aioclient_mock.mock_calls.clear()
+    await _refresh(hass)
+    paths = {
+        str(url.path).removeprefix("/api/integrations/v1")
+        for _, url, _, _ in aioclient_mock.mock_calls
+    }
+    assert paths == {"/kids", "/kids/sam", "/kids/noor", "/kids/mila", "/years/current"}
+
+
 async def test_scan_interval_option(hass: HomeAssistant, server: Server, aioclient_mock) -> None:
     server()
     entry = MockConfigEntry(

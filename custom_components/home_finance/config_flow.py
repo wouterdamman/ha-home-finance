@@ -15,6 +15,9 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -31,6 +34,7 @@ from .api import (
     normalize_base_url,
 )
 from .const import (
+    CONF_ENABLED_SCOPES,
     CONF_HOUSEHOLD_NAME,
     CONF_SCOPES,
     DEFAULT_HOUSEHOLD_NAME,
@@ -95,6 +99,23 @@ def _schema() -> vol.Schema:
     )
 
 
+def _scope_selector(scopes: list[str]) -> SelectSelector:
+    """Multi-select of the token's scopes, labelled by translation ("kids", "pots", ...)."""
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=[s.split(":")[0] for s in scopes],
+            multiple=True,
+            mode=SelectSelectorMode.LIST,
+            translation_key="scopes",
+        )
+    )
+
+
+def _selected_scopes(user_input: dict[str, Any], scopes: list[str]) -> list[str]:
+    chosen = set(user_input.get(CONF_ENABLED_SCOPES) or [])
+    return [s for s in scopes if s.split(":")[0] in chosen]
+
+
 def _data(base_url: str, token: str, info: JSON) -> dict[str, Any]:
     return {
         CONF_URL: base_url,
@@ -108,6 +129,11 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     MINOR_VERSION = 2
+
+    def __init__(self) -> None:
+        """Hold the validated input between the user and scopes steps."""
+        self._pending: dict[str, Any] = {}
+        self._title = ""
 
     @staticmethod
     @callback
@@ -128,12 +154,11 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(base_url)
                 self._abort_if_unique_id_configured()
-                title = info.get("tokenName") or urlsplit(base_url).hostname or base_url
-                return self.async_create_entry(
-                    title=title,
-                    data=_data(base_url, user_input[CONF_API_TOKEN], info)
-                    | _household_name(user_input),
+                self._title = info.get("tokenName") or urlsplit(base_url).hostname or base_url
+                self._pending = _data(base_url, user_input[CONF_API_TOKEN], info) | (
+                    _household_name(user_input)
                 )
+                return await self.async_step_scopes()
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(
@@ -147,6 +172,30 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             ),
             description_placeholders=URL_PLACEHOLDERS,
+            errors=errors,
+        )
+
+    async def async_step_scopes(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Ask which of the token's scopes to fetch."""
+        scopes: list[str] = self._pending[CONF_SCOPES]
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            if selected := _selected_scopes(user_input, scopes):
+                return self.async_create_entry(
+                    title=self._title,
+                    data=self._pending,
+                    options={CONF_ENABLED_SCOPES: selected},
+                )
+            errors["base"] = "no_scope_selected"
+        return self.async_show_form(
+            step_id="scopes",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_ENABLED_SCOPES, default=[s.split(":")[0] for s in scopes]
+                    ): _scope_selector(scopes)
+                }
+            ),
             errors=errors,
         )
 
@@ -218,21 +267,34 @@ class HomeFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class HomeFinanceOptionsFlow(OptionsFlowWithReload):
-    """Polling interval."""
+    """Which scopes to fetch and the polling interval."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Ask for the scan interval in minutes."""
+        """Ask for the scopes to fetch and the scan interval in minutes."""
+        scopes: list[str] = self.config_entry.data.get(CONF_SCOPES, [])
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self.async_create_entry(
-                data={CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL])}
-            )
+            if selected := _selected_scopes(user_input, scopes):
+                return self.async_create_entry(
+                    data={
+                        CONF_ENABLED_SCOPES: selected,
+                        CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+                    }
+                )
+            errors["base"] = "no_scope_selected"
         current = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, int(DEFAULT_SCAN_INTERVAL.total_seconds() // 60)
         )
+        enabled = self.config_entry.options.get(CONF_ENABLED_SCOPES) or scopes
         return self.async_show_form(
             step_id="init",
+            errors=errors,
             data_schema=vol.Schema(
                 {
+                    vol.Required(
+                        CONF_ENABLED_SCOPES,
+                        default=[s.split(":")[0] for s in scopes if s in enabled],
+                    ): _scope_selector(scopes),
                     vol.Required(CONF_SCAN_INTERVAL, default=current): NumberSelector(
                         NumberSelectorConfig(
                             min=MIN_SCAN_INTERVAL_MINUTES,
@@ -241,7 +303,7 @@ class HomeFinanceOptionsFlow(OptionsFlowWithReload):
                             mode=NumberSelectorMode.BOX,
                             unit_of_measurement="min",
                         )
-                    )
+                    ),
                 }
             ),
         )

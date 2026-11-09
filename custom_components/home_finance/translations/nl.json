@@ -38,6 +38,16 @@
           "api_token": "Het hf_...-token, eenmalig getoond bij het aanmaken.",
           "household_name": "Naam van het apparaat met de totalen. De entiteiten worden ernaar vernoemd, bijvoorbeeld sensor.huishouden_kinderen_totaal."
         }
+      },
+      "scopes": {
+        "title": "Op te halen gegevens",
+        "description": "Kies welke gegevens Home Assistant ophaalt. Alleen de scopes van dit token staan erin. Wat je uitvinkt wordt niet opgevraagd en krijgt geen apparaten of entiteiten. Je kunt dit later wijzigen via Configureren.",
+        "data": {
+          "enabled_scopes": "Ophalen"
+        },
+        "data_description": {
+          "enabled_scopes": "Kinderen: een apparaat per kind. Spaarpotjes: een apparaat per potje. Maand- en jaarcijfers: totalen op het huishouden-apparaat."
+        }
       }
     },
     "error": {
@@ -46,7 +56,8 @@
       "no_scopes": "Het token heeft geen van de scopes kids:read, pots:read, periods:read of years:read.",
       "unsupported_api": "De server gebruikt een niet-ondersteunde versie van de Integration API.",
       "invalid_url": "Vul een adres in dat met http of https begint.",
-      "unknown": "Onverwachte fout."
+      "unknown": "Onverwachte fout.",
+      "no_scope_selected": "Kies er minstens één."
     },
     "abort": {
       "already_configured": "Deze server is al geconfigureerd.",
@@ -59,11 +70,26 @@
       "init": {
         "title": "Opties",
         "data": {
+          "enabled_scopes": "Ophalen",
           "scan_interval": "Update-interval (minuten)"
         },
         "data_description": {
+          "enabled_scopes": "Kinderen: een apparaat per kind. Spaarpotjes: een apparaat per potje. Maand- en jaarcijfers: totalen op het huishouden-apparaat.",
           "scan_interval": "De gegevens veranderen een paar keer per maand; 15 minuten is ruim genoeg. Minimaal 5."
         }
+      }
+    },
+    "error": {
+      "no_scope_selected": "Kies er minstens één."
+    }
+  },
+  "selector": {
+    "scopes": {
+      "options": {
+        "kids": "Kinderen",
+        "pots": "Spaarpotjes",
+        "periods": "Maandcijfers",
+        "years": "Jaarcijfers"
       }
     }
   },
