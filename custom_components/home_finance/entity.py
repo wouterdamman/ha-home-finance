@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import date
 from decimal import Decimal
 from typing import Any
@@ -18,7 +19,14 @@ from homeassistant.util import dt as dt_util
 
 from . import HomeFinanceConfigEntry, device_identifier
 from .api import JSON
-from .const import CONF_HOUSEHOLD_NAME, DEFAULT_HOUSEHOLD_NAME, DOMAIN, MANUFACTURER, Scope
+from .const import (
+    CONF_HOUSEHOLD_NAME,
+    DEFAULT_ENABLED,
+    DEFAULT_HOUSEHOLD_NAME,
+    DOMAIN,
+    MANUFACTURER,
+    Scope,
+)
 from .coordinator import HomeFinanceCoordinator, ListData
 
 KIND_KID = "kid"
@@ -138,6 +146,13 @@ class HomeFinanceEntity(CoordinatorEntity[HomeFinanceCoordinator[Any]]):
     def available(self) -> bool:
         """Unavailable when the refresh failed or the object is gone."""
         return super().available and self.item is not None
+
+
+def with_default_enabled[D: EntityDescription](kind: str, descs: tuple[D, ...]) -> tuple[D, ...]:
+    """Enable by default only the compact set in ``DEFAULT_ENABLED`` for this kind."""
+    return tuple(
+        replace(d, entity_registry_enabled_default=d.key in DEFAULT_ENABLED[kind]) for d in descs
+    )
 
 
 def has_target(item: JSON) -> bool:

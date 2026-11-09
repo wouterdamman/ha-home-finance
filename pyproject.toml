@@ -30,6 +30,7 @@ split-on-trailing-comma = false
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+markers = ["compact_defaults: use the real default-enabled entity set"]
 addopts = "--cov=custom_components.home_finance --cov-report=term-missing --cov-fail-under=95"
 
 [tool.coverage.run]

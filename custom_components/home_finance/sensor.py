@@ -36,6 +36,7 @@ from .entity import (
     has_target,
     has_target_date,
     number,
+    with_default_enabled,
 )
 
 # Read-only polling through coordinators: no per-entity update concurrency.
@@ -60,7 +61,6 @@ def _money(
     value_fn: Callable[[JSON], Decimal | None],
     *,
     balance: bool = False,
-    enabled: bool = True,
     attrs_fn: Callable[[JSON], dict[str, Any]] | None = None,
     exists_fn: Callable[[JSON], bool] | None = None,
 ) -> HomeFinanceSensorEntityDescription:
@@ -76,7 +76,6 @@ def _money(
         native_unit_of_measurement=CURRENCY,
         suggested_display_precision=2,
         state_class=SensorStateClass.TOTAL if balance else None,
-        entity_registry_enabled_default=enabled,
         value_fn=value_fn,
         attrs_fn=attrs_fn,
         exists_fn=exists_fn,
@@ -148,35 +147,30 @@ KID_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
     ),
     _money("last_entry_amount", cents("lastEntry", "amountCents")),
     # Flow breakdowns: useful for checking the invariant, noisy on a dashboard.
-    _money("opening_balance", cents("combined", "openingBalanceCents"), enabled=False),
-    _money("deposits", cents("combined", "depositsCents"), enabled=False),
-    _money("withdrawals", cents("combined", "withdrawalsCents"), enabled=False),
-    _money("adjustments", cents("combined", "adjustmentsCents"), enabled=False),
+    _money("opening_balance", cents("combined", "openingBalanceCents")),
+    _money("deposits", cents("combined", "depositsCents")),
+    _money("withdrawals", cents("combined", "withdrawalsCents")),
+    _money("adjustments", cents("combined", "adjustmentsCents")),
     _money(
         "withdrawals_this_month",
         cents("combined", "thisMonth", "withdrawalsCents"),
-        enabled=False,
     ),
     _money(
         "withdrawals_this_year",
         cents("combined", "thisYear", "withdrawalsCents"),
-        enabled=False,
     ),
     _money(
         "ours_net_this_month",
         cents("pots", "ours", "thisMonth", "netCents"),
-        enabled=False,
     ),
-    _money("ours_net_this_year", cents("pots", "ours", "thisYear", "netCents"), enabled=False),
+    _money("ours_net_this_year", cents("pots", "ours", "thisYear", "netCents")),
     _money(
         "theirs_net_this_month",
         cents("pots", "theirs", "thisMonth", "netCents"),
-        enabled=False,
     ),
     _money(
         "theirs_net_this_year",
         cents("pots", "theirs", "thisYear", "netCents"),
-        enabled=False,
     ),
 )
 
@@ -229,22 +223,20 @@ POT_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
         value_fn=day("lastEntry", "date"),
         attrs_fn=_pot_last_entry_attrs,
     ),
-    _money("opening_balance", cents("flows", "openingBalanceCents"), enabled=False),
-    _money("allocations", cents("flows", "allocationsCents"), enabled=False),
-    _money("deposits", cents("flows", "depositsCents"), enabled=False),
-    _money("withdrawals", cents("flows", "withdrawalsCents"), enabled=False),
-    _money("carryover_out", cents("flows", "carryoverOutCents"), enabled=False),
-    _money("adjustments", cents("flows", "adjustmentsCents"), enabled=False),
+    _money("opening_balance", cents("flows", "openingBalanceCents")),
+    _money("allocations", cents("flows", "allocationsCents")),
+    _money("deposits", cents("flows", "depositsCents")),
+    _money("withdrawals", cents("flows", "withdrawalsCents")),
+    _money("carryover_out", cents("flows", "carryoverOutCents")),
+    _money("adjustments", cents("flows", "adjustmentsCents")),
     _money(
         "allocated_this_year",
         cents("flows", "thisYear", "allocationsCents"),
-        enabled=False,
     ),
-    _money("deposits_this_month", cents("flows", "thisMonth", "depositsCents"), enabled=False),
+    _money("deposits_this_month", cents("flows", "thisMonth", "depositsCents")),
     _money(
         "withdrawals_this_month",
         cents("flows", "thisMonth", "withdrawalsCents"),
-        enabled=False,
     ),
 )
 
@@ -281,24 +273,25 @@ HOUSEHOLD_YEAR_SENSORS: tuple[HomeFinanceSensorEntityDescription, ...] = (
     HomeFinanceSensorEntityDescription(
         key="year_periods_open",
         translation_key="year_periods_open",
-        entity_registry_enabled_default=False,
         value_fn=number("periodsOpen"),
     ),
     HomeFinanceSensorEntityDescription(
         key="year_periods_closed",
         translation_key="year_periods_closed",
-        entity_registry_enabled_default=False,
         value_fn=number("periodsClosed"),
     ),
 )
 
 SENSORS: dict[tuple[Scope, str], tuple[HomeFinanceSensorEntityDescription, ...]] = {
-    (Scope.KIDS, KIND_HOUSEHOLD): HOUSEHOLD_KID_SENSORS,
-    (Scope.KIDS, KIND_KID): KID_SENSORS,
-    (Scope.POTS, KIND_HOUSEHOLD): HOUSEHOLD_POT_SENSORS,
-    (Scope.POTS, KIND_POT): POT_SENSORS,
-    (Scope.PERIODS, KIND_HOUSEHOLD): HOUSEHOLD_PERIOD_SENSORS,
-    (Scope.YEARS, KIND_HOUSEHOLD): HOUSEHOLD_YEAR_SENSORS,
+    (scope, kind): with_default_enabled(kind, descs)
+    for (scope, kind), descs in {
+        (Scope.KIDS, KIND_HOUSEHOLD): HOUSEHOLD_KID_SENSORS,
+        (Scope.KIDS, KIND_KID): KID_SENSORS,
+        (Scope.POTS, KIND_HOUSEHOLD): HOUSEHOLD_POT_SENSORS,
+        (Scope.POTS, KIND_POT): POT_SENSORS,
+        (Scope.PERIODS, KIND_HOUSEHOLD): HOUSEHOLD_PERIOD_SENSORS,
+        (Scope.YEARS, KIND_HOUSEHOLD): HOUSEHOLD_YEAR_SENSORS,
+    }.items()
 }
 
 
