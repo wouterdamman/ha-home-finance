@@ -1,12 +1,14 @@
 {
   "domain": "home_finance",
   "name": "home-finance",
-  "codeowners": ["@wouterdamman"],
+  "codeowners": [
+    "@wouterdamman"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/wouterdamman/ha-home-finance",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/wouterdamman/ha-home-finance/issues",
   "requirements": [],
-  "version": "0.0.0"
+  "version": "0.1.0"
 }
